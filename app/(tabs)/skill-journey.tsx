@@ -9,39 +9,20 @@ import {
   Platform, 
   Dimensions,
   ActivityIndicator,
-  RefreshControl
+  RefreshControl,
+  Alert
 } from 'react-native';
-import { 
-  Plus, 
-  Target, 
-  TrendingUp, 
-  BookOpen, 
-  Star, 
-  Calendar,
-  Award,
-  Users,
-  Heart,
-  Zap
-} from 'lucide-react-native';
+import { Plus, ArrowLeft } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';
 import { useFamily } from '@/context/FamilyContext';
-import { 
-  skillService, 
-  progressService, 
-  milestoneService, 
-  storyService, 
-  statsService 
-} from '@/lib/skillJourneyService';
-import { 
-  Skill, 
-  SkillProgress, 
-  SkillMilestone, 
-  AIStory, 
-  SkillJourneyStats,
-  ProgressStatus 
-} from '@/types/skillJourney';
+import { slice1Service } from '@/lib/skillJourneyService';
+import { Journey, Adventure, CreateSimpleSkillForm, CreateAdventureForm } from '@/types/skillJourney';
+import ResilienceTreeComponent from '@/components/ResilienceTree';
+import AdventureLogger from '@/components/AdventureLogger';
+import MemoryLane from '@/components/MemoryLane';
+import SimpleSkillForm from '@/components/SimpleSkillForm';
 
 export default function SkillJourneyScreen() {
   const { colors } = useTheme();
@@ -51,592 +32,466 @@ export default function SkillJourneyScreen() {
   
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [skills, setSkills] = useState<Skill[]>([]);
-  const [latestProgress, setLatestProgress] = useState<Record<string, SkillProgress>>({});
-  const [milestones, setMilestones] = useState<SkillMilestone[]>([]);
-  const [stories, setStories] = useState<AIStory[]>([]);
-  const [stats, setStats] = useState<SkillJourneyStats | null>(null);
+  const [journeys, setJourneys] = useState<Journey[]>([]);
+  const [selectedJourney, setSelectedJourney] = useState<Journey | null>(null);
+  const [adventures, setAdventures] = useState<Adventure[]>([]);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showAdventureLogger, setShowAdventureLogger] = useState(false);
 
   const isWeb = Platform.OS === 'web';
   const windowWidth = Dimensions.get('window').width;
 
   // Auto-select first child if none selected
   useEffect(() => {
-    console.log('SkillJourney: children changed', children.length);
     if (children.length > 0 && !selectedChildId) {
-      console.log('SkillJourney: Auto-selecting first child:', children[0].id);
       setSelectedChildId(children[0].id);
     } else if (children.length === 0) {
-      console.log('SkillJourney: No children available');
       setSelectedChildId(null);
     }
   }, [children, selectedChildId, setSelectedChildId]);
 
-  // Load all data when selectedChildId changes
-  const loadData = async () => {
-    console.log('SkillJourney: loadData called with childId:', selectedChildId);
+  // Load journeys when selectedChildId changes
+  const loadJourneys = async () => {
     if (!selectedChildId) {
-      console.log('SkillJourney: No selectedChildId, setting loading to false');
       setLoading(false);
       return;
     }
 
     try {
       setLoading(true);
-      console.log('SkillJourney: Starting data load...');
+      const result = await slice1Service.getJourneys(selectedChildId);
       
-      const [
-        skillsResult,
-        progressResult,
-        milestonesResult,
-        storiesResult,
-        statsResult
-      ] = await Promise.all([
-        skillService.getSkills(selectedChildId),
-        progressService.getLatestProgress(selectedChildId),
-        milestoneService.getChildMilestones(selectedChildId),
-        storyService.getChildStories(selectedChildId),
-        statsService.getChildStats(selectedChildId)
-      ]);
-
-      console.log('SkillJourney: Data load completed', {
-        skills: skillsResult.data?.length || 0,
-        progress: progressResult.data ? Object.keys(progressResult.data).length : 0,
-        milestones: milestonesResult.data?.length || 0,
-        stories: storiesResult.data?.length || 0,
-        stats: !!statsResult.data
-      });
-
-      // Handle results with error checking
-      if (skillsResult.data) setSkills(skillsResult.data);
-      if (progressResult.data) setLatestProgress(progressResult.data);
-      if (milestonesResult.data) setMilestones(milestonesResult.data);
-      if (storiesResult.data) setStories(storiesResult.data);
-      if (statsResult.data) setStats(statsResult.data);
-
-      // Log any errors for debugging
-      if (skillsResult.error) console.warn('Skills error:', skillsResult.error);
-      if (progressResult.error) console.warn('Progress error:', progressResult.error);
-      if (milestonesResult.error) console.warn('Milestones error:', milestonesResult.error);
-      if (storiesResult.error) console.warn('Stories error:', storiesResult.error);
-      if (statsResult.error) console.warn('Stats error:', statsResult.error);
-
+      if (result.data) {
+        setJourneys(result.data);
+        // Auto-select first journey if available
+        if (result.data.length > 0 && !selectedJourney) {
+          setSelectedJourney(result.data[0]);
+        }
+      }
     } catch (error) {
-      console.error('Error loading skill journey data:', error);
-      // Set empty states on error
-      setSkills([]);
-      setLatestProgress({});
-      setMilestones([]);
-      setStories([]);
-      setStats(null);
+      console.error('Error loading journeys:', error);
+      setJourneys([]);
     } finally {
-      console.log('SkillJourney: Setting loading to false');
       setLoading(false);
+    }
+  };
+
+  // Load adventures when selectedJourney changes
+  const loadAdventures = async () => {
+    if (!selectedChildId || !selectedJourney) {
+      setAdventures([]);
+      return;
+    }
+
+    try {
+      const result = await slice1Service.getAdventures(selectedChildId, selectedJourney.skillData.id);
+      if (result.data) {
+        setAdventures(result.data);
+      }
+    } catch (error) {
+      console.error('Error loading adventures:', error);
+      setAdventures([]);
     }
   };
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadData();
+    await loadJourneys();
     setRefreshing(false);
   };
 
   useEffect(() => {
-    loadData();
+    loadJourneys();
   }, [selectedChildId]);
 
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
-    inner: {
-      flex: 1,
-      width: isWeb ? Math.min(windowWidth * 0.9, 1200) : '100%',
-      maxWidth: isWeb ? 1200 : '100%',
-      alignSelf: isWeb ? 'center' : 'stretch',
-      backgroundColor: isWeb ? 'rgba(255,255,255,0.95)' : colors.background,
-      borderRadius: isWeb ? 24 : 0,
-      marginTop: isWeb ? 32 : 0,
-      marginBottom: isWeb ? 32 : 0,
-      marginLeft: isWeb ? 80 : 0,
-      overflow: 'visible',
-      paddingBottom: 32,
-    },
-    header: {
-      padding: 16,
-      paddingTop: 8,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-    },
-    title: {
-      fontSize: 28,
-      fontWeight: 'bold',
-      color: colors.text,
-    },
-    subtitle: {
-      fontSize: 16,
-      color: colors.textSecondary,
-      marginTop: 4,
-    },
-    addButton: {
-      backgroundColor: colors.primary,
-      padding: 12,
-      borderRadius: 12,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-    },
-    addButtonText: {
-      color: colors.background,
-      fontWeight: '600',
-      fontSize: 16,
-    },
-    section: {
-      padding: 16,
-      paddingTop: 0,
-    },
-    sectionTitle: {
-      fontSize: 20,
-      fontWeight: '600',
-      color: colors.text,
-      marginBottom: 16,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-    },
-    statsGrid: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: 12,
-      marginBottom: 24,
-    },
-    statCard: {
-      flex: 1,
-      minWidth: 120,
-      padding: 16,
-      borderRadius: 12,
-      backgroundColor: colors.card,
-      borderWidth: 1,
-      borderColor: colors.border,
-      alignItems: 'center',
-    },
-    statValue: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      color: colors.primary,
-      marginBottom: 4,
-    },
-    statLabel: {
-      fontSize: 12,
-      color: colors.textSecondary,
-      textAlign: 'center',
-    },
-    skillsGrid: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: 12,
-    },
-    skillCard: {
-      width: isWeb ? '48%' : '48%',
-      padding: 16,
-      borderRadius: 12,
-      backgroundColor: colors.card,
-      borderWidth: 1,
-      borderColor: colors.border,
-      marginBottom: 12,
-    },
-    skillName: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: colors.text,
-      marginBottom: 4,
-    },
-    skillCategory: {
-      fontSize: 12,
-      color: colors.textSecondary,
-      marginBottom: 8,
-    },
-    progressBar: {
-      height: 6,
-      backgroundColor: colors.border,
-      borderRadius: 3,
-      marginBottom: 8,
-    },
-    progressFill: {
-      height: '100%',
-      borderRadius: 3,
-    },
-    progressText: {
-      fontSize: 12,
-      color: colors.textSecondary,
-    },
-    milestoneCard: {
-      padding: 16,
-      borderRadius: 12,
-      backgroundColor: colors.card,
-      borderWidth: 1,
-      borderColor: colors.border,
-      marginBottom: 12,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 12,
-    },
-    milestoneIcon: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      backgroundColor: colors.primary + '20',
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    milestoneContent: {
-      flex: 1,
-    },
-    milestoneTitle: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: colors.text,
-      marginBottom: 4,
-    },
-    milestoneDate: {
-      fontSize: 12,
-      color: colors.textSecondary,
-    },
-    storyCard: {
-      padding: 16,
-      borderRadius: 12,
-      backgroundColor: colors.card,
-      borderWidth: 1,
-      borderColor: colors.border,
-      marginBottom: 12,
-    },
-    storyTitle: {
-      fontSize: 18,
-      fontWeight: '600',
-      color: colors.text,
-      marginBottom: 8,
-    },
-    storyPreview: {
-      fontSize: 14,
-      color: colors.textSecondary,
-      lineHeight: 20,
-      marginBottom: 12,
-    },
-    storyMeta: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-    },
-    storyType: {
-      fontSize: 12,
-      color: colors.primary,
-      fontWeight: '500',
-    },
-    storyReadCount: {
-      fontSize: 12,
-      color: colors.textSecondary,
-    },
-    emptyState: {
-      padding: 32,
-      alignItems: 'center',
-    },
-    emptyIcon: {
-      marginBottom: 16,
-    },
-    emptyTitle: {
-      fontSize: 18,
-      fontWeight: '600',
-      color: colors.text,
-      marginBottom: 8,
-      textAlign: 'center',
-    },
-    emptyText: {
-      fontSize: 14,
-      color: colors.textSecondary,
-      textAlign: 'center',
-      lineHeight: 20,
-    },
-    childSelector: {
-      flexDirection: 'row',
-      gap: 8,
-      marginTop: 8,
-    },
-    childButton: {
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 16,
-      backgroundColor: colors.card,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    childButtonActive: {
-      backgroundColor: colors.primary,
-      borderColor: colors.primary,
-    },
-    childButtonText: {
-      fontSize: 14,
-      fontWeight: '500',
-      color: colors.text,
-    },
-    childButtonTextActive: {
-      color: colors.background,
-    },
-  });
+  useEffect(() => {
+    loadAdventures();
+  }, [selectedJourney]);
 
-  const getProgressPercentage = (skill: Skill): number => {
-    const progress = latestProgress[skill.id];
-    if (!progress) return 0;
-    
-    const statusValues: Record<ProgressStatus, number> = {
-      'not-started': 0,
-      'struggling': 20,
-      'learning': 40,
-      'improving': 60,
-      'almost-there': 80,
-      'mastered': 100,
-      'maintaining': 100,
-    };
-    
-    return statusValues[progress.status] || 0;
-  };
+  // Create new skill journey
+  const handleCreateSkill = async (skillData: CreateSimpleSkillForm) => {
+    if (!selectedChildId) {
+      Alert.alert('Error', 'No child selected');
+      return;
+    }
 
-  const getProgressColor = (percentage: number): string => {
-    if (percentage >= 80) return colors.success;
-    if (percentage >= 60) return colors.primary;
-    if (percentage >= 40) return '#FFA500';
-    return colors.error;
-  };
-
-  const getMilestoneIcon = (type: string) => {
-    switch (type) {
-      case 'first-attempt': return <Target size={20} color={colors.primary} />;
-      case 'breakthrough': return <Zap size={20} color={colors.primary} />;
-      case 'consistency': return <TrendingUp size={20} color={colors.primary} />;
-      case 'independence': return <Award size={20} color={colors.primary} />;
-      case 'teaching-others': return <Users size={20} color={colors.primary} />;
-      case 'mastery': return <Star size={20} color={colors.primary} />;
-      default: return <Award size={20} color={colors.primary} />;
+    try {
+      const result = await slice1Service.createJourney(selectedChildId, skillData);
+      if (result.data) {
+        setJourneys(prev => [result.data!, ...prev]);
+        setSelectedJourney(result.data);
+        setShowCreateForm(false);
+        Alert.alert('Success', 'Skill journey created! Start logging adventures to help your tree grow.');
+      }
+    } catch (error) {
+      console.error('Error creating skill:', error);
+      Alert.alert('Error', 'Failed to create skill journey');
     }
   };
 
-  if (familyLoading) {
+  // Log new adventure
+  const handleLogAdventure = async (adventureData: CreateAdventureForm) => {
+    if (!selectedChildId || !selectedJourney) {
+      Alert.alert('Error', 'No skill selected');
+      return;
+    }
+
+    try {
+      const result = await slice1Service.logAdventure(selectedChildId, selectedJourney.skillData.id, adventureData);
+      if (result.data) {
+        setAdventures(prev => [result.data!, ...prev]);
+        // Update the journey's tree data
+        setSelectedJourney(prev => prev ? {
+          ...prev,
+          resilienceTree: {
+            ...prev.resilienceTree,
+            leafCount: prev.resilienceTree.leafCount + 1,
+            lastUpdated: new Date()
+          }
+        } : null);
+        setShowAdventureLogger(false);
+      }
+    } catch (error) {
+      console.error('Error logging adventure:', error);
+      throw error; // Let the component handle the error
+    }
+  };
+
+  if (familyLoading || loading) {
     return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={{ marginTop: 16, color: colors.textSecondary }}>Loading family data...</Text>
-      </View>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.loadingText, { color: colors.text }]}>
+            Loading skill journeys...
+          </Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   if (children.length === 0) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={[styles.inner, { justifyContent: 'center', alignItems: 'center', padding: 32 }]}>
-          <Users size={64} color={colors.textSecondary} style={{ marginBottom: 16 }} />
-          <Text style={[styles.title, { textAlign: 'center', marginBottom: 8 }]}>No Children Added</Text>
-          <Text style={[styles.subtitle, { textAlign: 'center', marginBottom: 24 }]}>
-            Add a child to your family to start tracking their skill journey
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={styles.emptyContainer}>
+          <Text style={[styles.emptyTitle, { color: colors.text }]}>No Children Added</Text>
+          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+            Add a child to start tracking skill journeys
           </Text>
           <TouchableOpacity 
-            style={styles.addButton}
+            style={[styles.addButton, { backgroundColor: colors.primary }]}
             onPress={() => router.push('/children/add')}
           >
             <Plus size={20} color={colors.background} />
-            <Text style={styles.addButtonText}>Add Child</Text>
+            <Text style={[styles.addButtonText, { color: colors.background }]}>
+              Add Child
+            </Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
   }
 
-  if (loading) {
+  if (showCreateForm) {
     return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={{ marginTop: 16, color: colors.textSecondary }}>Loading your skill journey...</Text>
-      </View>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={styles.header}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => setShowCreateForm(false)}
+          >
+            <ArrowLeft size={24} color={colors.text} />
+            <Text style={[styles.backButtonText, { color: colors.text }]}>Back</Text>
+          </TouchableOpacity>
+        </View>
+        <SimpleSkillForm
+          onSubmit={handleCreateSkill}
+          onCancel={() => setShowCreateForm(false)}
+          isLoading={false}
+        />
+      </SafeAreaView>
     );
   }
 
-  const selectedChild = children.find(child => child.id === selectedChildId);
+  if (showAdventureLogger && selectedJourney) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={styles.header}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => setShowAdventureLogger(false)}
+          >
+            <ArrowLeft size={24} color={colors.text} />
+            <Text style={[styles.backButtonText, { color: colors.text }]}>Back</Text>
+          </TouchableOpacity>
+        </View>
+        <ScrollView 
+          style={styles.scrollView}
+          contentContainerStyle={{ paddingBottom: 40 }}
+          showsVerticalScrollIndicator={false}
+        >
+          <AdventureLogger
+            skillName={selectedJourney.skillData.name}
+            onLogAdventure={handleLogAdventure}
+            isLoading={loading}
+          />
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView 
-        style={styles.inner}
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <ScrollView
+        style={styles.scrollView}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
+        {/* Header */}
         <View style={styles.header}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.title}>Skill Journey</Text>
-            {selectedChild && (
-              <Text style={styles.subtitle}>
-                {selectedChild.name}'s learning adventure
-              </Text>
-            )}
-            {children.length > 1 && (
-              <View style={styles.childSelector}>
-                {children.map((child) => (
-                  <TouchableOpacity
-                    key={child.id}
-                    style={[
-                      styles.childButton,
-                      selectedChildId === child.id && styles.childButtonActive
-                    ]}
-                    onPress={() => setSelectedChildId(child.id)}
-                  >
-                    <Text style={[
-                      styles.childButtonText,
-                      selectedChildId === child.id && styles.childButtonTextActive
-                    ]}>
-                      {child.name}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
+          <View>
+            <Text style={[styles.title, { color: colors.text }]}>Skill Journey</Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+              {children.find(c => c.id === selectedChildId)?.name || 'Select a child'}
+            </Text>
           </View>
           <TouchableOpacity 
-            style={styles.addButton}
-            onPress={() => router.push('/(tabs)/skill-journey/add-skill')}
+            style={[styles.addButton, { backgroundColor: colors.primary }]}
+            onPress={() => setShowCreateForm(true)}
           >
             <Plus size={20} color={colors.background} />
-            <Text style={styles.addButtonText}>Add Skill</Text>
+            <Text style={[styles.addButtonText, { color: colors.background }]}>
+              New Skill
+            </Text>
           </TouchableOpacity>
         </View>
 
-        {/* Stats Overview */}
-        {stats && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
-              <TrendingUp size={20} color={colors.primary} />
-              Your Progress
+        {journeys.length === 0 ? (
+          <View style={styles.emptyJourneysContainer}>
+            <Text style={[styles.emptyJourneysTitle, { color: colors.text }]}>
+              No Skills Yet
             </Text>
-            <View style={styles.statsGrid}>
-              <View style={styles.statCard}>
-                <Text style={styles.statValue}>{stats.activeSkills}</Text>
-                <Text style={styles.statLabel}>Active Skills</Text>
-              </View>
-              <View style={styles.statCard}>
-                <Text style={styles.statValue}>{stats.masteredSkills}</Text>
-                <Text style={styles.statLabel}>Mastered</Text>
-              </View>
-              <View style={styles.statCard}>
-                <Text style={styles.statValue}>{stats.currentStreak}</Text>
-                <Text style={styles.statLabel}>Day Streak</Text>
-              </View>
-              <View style={styles.statCard}>
-                <Text style={styles.statValue}>{stats.totalMilestones}</Text>
-                <Text style={styles.statLabel}>Milestones</Text>
-              </View>
-            </View>
-          </View>
-        )}
-
-        {/* Active Skills */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            <Target size={20} color={colors.primary} />
-            Active Skills
-          </Text>
-          {skills.length > 0 ? (
-            <View style={styles.skillsGrid}>
-              {skills.slice(0, 6).map((skill) => {
-                const progressPercentage = getProgressPercentage(skill);
-                return (
-                  <TouchableOpacity 
-                    key={skill.id} 
-                    style={styles.skillCard}
-                    onPress={() => router.push(`/skill-journey/skill/${skill.id}`)}
-                  >
-                    <Text style={styles.skillName}>{skill.name}</Text>
-                    <Text style={styles.skillCategory}>{skill.category}</Text>
-                    <View style={styles.progressBar}>
-                      <View 
-                        style={[
-                          styles.progressFill, 
-                          { 
-                            width: `${progressPercentage}%`,
-                            backgroundColor: getProgressColor(progressPercentage)
-                          }
-                        ]} 
-                      />
-                    </View>
-                    <Text style={styles.progressText}>{progressPercentage}% complete</Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          ) : (
-            <View style={styles.emptyState}>
-              <Target size={48} color={colors.textSecondary} style={styles.emptyIcon} />
-              <Text style={styles.emptyTitle}>No skills yet</Text>
-              <Text style={styles.emptyText}>
-                Start by adding your first skill to track progress and celebrate achievements!
+            <Text style={[styles.emptyJourneysText, { color: colors.textSecondary }]}>
+              Create your first skill journey to start growing your resilience tree!
+            </Text>
+            <TouchableOpacity 
+              style={[styles.createFirstButton, { backgroundColor: colors.primary }]}
+              onPress={() => setShowCreateForm(true)}
+            >
+              <Plus size={20} color={colors.background} />
+              <Text style={[styles.createFirstButtonText, { color: colors.background }]}>
+                Create First Skill
               </Text>
-            </View>
-          )}
-        </View>
-
-        {/* Recent Milestones */}
-        {milestones.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
-              <Award size={20} color={colors.primary} />
-              Recent Milestones
-            </Text>
-            {milestones.slice(0, 3).map((milestone) => (
-              <TouchableOpacity 
-                key={milestone.id} 
-                style={styles.milestoneCard}
-                onPress={() => router.push(`/skill-journey/milestone/${milestone.id}`)}
-              >
-                <View style={styles.milestoneIcon}>
-                  {getMilestoneIcon(milestone.type)}
-                </View>
-                <View style={styles.milestoneContent}>
-                  <Text style={styles.milestoneTitle}>{milestone.title}</Text>
-                  <Text style={styles.milestoneDate}>
-                    {new Date(milestone.date).toLocaleDateString()}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            ))}
+            </TouchableOpacity>
           </View>
-        )}
+        ) : (
+          <View style={styles.content}>
+            {/* Journey Selection */}
+            <View style={styles.journeySelector}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Select a Skill</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {journeys.map((journey) => (
+                  <TouchableOpacity
+                    key={journey.skillData.id}
+                    style={[
+                      styles.journeyCard,
+                      selectedJourney?.skillData.id === journey.skillData.id && 
+                      { borderColor: colors.primary, backgroundColor: colors.primary + '10' }
+                    ]}
+                    onPress={() => setSelectedJourney(journey)}
+                  >
+                    <Text style={[styles.journeyName, { color: colors.text }]}>
+                      {journey.skillData.name}
+                    </Text>
+                    <Text style={[styles.journeyCategory, { color: colors.textSecondary }]}>
+                      {journey.skillData.category}
+                    </Text>
+                    <Text style={[styles.journeyLeaves, { color: colors.primary }]}>
+                      {journey.resilienceTree.leafCount} leaves
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
 
-        {/* AI Stories */}
-        {stories.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
-              <BookOpen size={20} color={colors.primary} />
-              Your Stories
-            </Text>
-            {stories.slice(0, 2).map((story) => (
-              <TouchableOpacity 
-                key={story.id} 
-                style={styles.storyCard}
-                onPress={() => router.push(`/skill-journey/story/${story.id}`)}
-              >
-                <Text style={styles.storyTitle}>{story.title}</Text>
-                <Text style={styles.storyPreview}>
-                  {story.content.substring(0, 120)}...
-                </Text>
-                <View style={styles.storyMeta}>
-                  <Text style={styles.storyType}>{story.storyType}</Text>
-                  <Text style={styles.storyReadCount}>
-                    Read {story.readCount} times
-                  </Text>
+            {selectedJourney && (
+              <>
+                {/* Resilience Tree */}
+                <View style={styles.treeSection}>
+                  <Text style={[styles.sectionTitle, { color: colors.text }]}>You're Growing!</Text>
+                  <View style={styles.treeContainer}>
+                    <ResilienceTreeComponent tree={selectedJourney.resilienceTree} size="medium" />
+                  </View>
+                  <TouchableOpacity 
+                    style={[styles.logAdventureButton, { backgroundColor: colors.primary }]}
+                    onPress={() => setShowAdventureLogger(true)}
+                  >
+                    <Text style={[styles.logAdventureButtonText, { color: colors.background }]}>
+                      Log Today's Adventure
+                    </Text>
+                  </TouchableOpacity>
                 </View>
-              </TouchableOpacity>
-            ))}
+
+                {/* Memory Lane */}
+                <View style={styles.memoryLaneSection}>
+                  <MemoryLane adventures={adventures} isLoading={loading} />
+                </View>
+              </>
+            )}
           </View>
         )}
       </ScrollView>
     </SafeAreaView>
   );
-} 
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    marginTop: 16,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+  },
+  emptyTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  emptyText: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    paddingTop: 8,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 8,
+  },
+  backButtonText: {
+    fontSize: 16,
+    marginLeft: 4,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+  },
+  subtitle: {
+    fontSize: 16,
+    marginTop: 4,
+  },
+  addButton: {
+    padding: 12,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  addButtonText: {
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  emptyJourneysContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+  },
+  emptyJourneysTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  emptyJourneysText: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  createFirstButton: {
+    padding: 16,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  createFirstButtonText: {
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  content: {
+    padding: 16,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  journeySelector: {
+    marginBottom: 24,
+  },
+  journeyCard: {
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
+    backgroundColor: '#F5F5F5',
+    marginRight: 12,
+    minWidth: 120,
+  },
+  journeyName: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  journeyCategory: {
+    fontSize: 12,
+    marginBottom: 8,
+  },
+  journeyLeaves: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  treeSection: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  treeContainer: {
+    marginTop: 30,
+    marginBottom: 16,
+  },
+  logAdventureButton: {
+    padding: 16,
+    borderRadius: 12,
+    minWidth: 200,
+    alignItems: 'center',
+  },
+  logAdventureButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  memoryLaneSection: {
+    flex: 1,
+  },
+}); 

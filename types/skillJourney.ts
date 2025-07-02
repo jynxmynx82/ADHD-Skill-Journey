@@ -187,4 +187,61 @@ export interface ProgressFilters {
   status?: ProgressStatus;
   effort?: SkillProgress['effort'];
   mood?: SkillProgress['mood'];
+}
+
+// ===== SLICE 1: CORE LOOP TYPES =====
+
+// Simplified skill for MVP
+export interface SimpleSkill {
+  id: string;
+  name: string;
+  category: SkillCategory;
+  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  estimatedDays: number;
+  createdAt: Date;
+}
+
+// Adventure (replaces "attempts" with positive framing)
+export interface Adventure {
+  id: string;
+  text: string;
+  winType: AdventureWinType;
+  photoUrl?: string;
+  createdAt: Date;
+}
+
+export type AdventureWinType = 
+  | 'tried-best'        // "We tried our best!"
+  | 'no-frustration'    // "We didn't get frustrated!"
+  | 'laughed-about-it'  // "We laughed about it!"
+  | 'made-progress'     // "We made progress!"
+  | 'kept-going'        // "We kept going!"
+  | 'custom';           // Custom positive note
+
+// Resilience Tree data
+export interface ResilienceTree {
+  treeLevel: number;
+  leafCount: number;
+  branchCount: number;
+  lastUpdated: Date;
+}
+
+// Journey document (contains skill + adventures + stories)
+export interface Journey {
+  skillData: SimpleSkill;
+  resilienceTree: ResilienceTree;
+}
+
+// Form types for Slice 1
+export interface CreateSimpleSkillForm {
+  name: string;
+  category: SkillCategory;
+  difficulty: SimpleSkill['difficulty'];
+  estimatedDays: number;
+}
+
+export interface CreateAdventureForm {
+  text: string;
+  winType: AdventureWinType;
+  photoUrl?: string;
 } 

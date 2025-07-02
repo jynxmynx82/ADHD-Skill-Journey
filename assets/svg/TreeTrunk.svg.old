@@ -1,0 +1,51 @@
+<svg width="400" height="600" viewBox="0 0 400 600" xmlns="http://www.w3.org/2000/svg">
+  <title>Tree Trunk with Tapered Base</title>
+  <desc>
+    A healthy, tapered tree trunk with a wide, supportive base and a hierarchical branching structure.
+  </desc>
+  
+  <defs>
+    <linearGradient id="barkGradientVertical" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B4513; stop-opacity:1" />
+      <stop offset="30%" style="stop-color:#A0522D; stop-opacity:1" />
+      <stop offset="70%" style="stop-color:#D2B48C; stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#A0522D; stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <g id="main-trunk">
+    <!-- Main trunk body - Corrected path for a wide base and tapered top -->
+    <path d="M 20,600   
+             C 40,500 80,400 120,300  
+             C 160,200 175,100 180,0   
+             L 220,0                    
+             C 225,100 240,200 280,300  
+             C 320,400 360,500 380,600 
+             Z" 
+          fill="url(#barkGradientVertical)" 
+          stroke="#5C3D2E" 
+          stroke-width="2"/>
+    
+    <!-- Bark texture and natural variations (slightly adjusted for new shape) -->
+    <path d="M 50,580 C 60,570 65,560 70,550 C 75,540 80,530 85,520" 
+          fill="none" stroke="#8B4513" stroke-width="1.5" opacity="0.6"/>
+    <path d="M 350,560 C 340,550 335,540 330,530 C 325,520 320,510 315,500" 
+          fill="none" stroke="#8B4513" stroke-width="1.5" opacity="0.6"/>
+    <path d="M 100,480 C 105,470 108,460 112,450 C 116,440 120,430 124,420" 
+          fill="none" stroke="#8B4513" stroke-width="1" opacity="0.5"/>
+    <path d="M 300,460 C 295,450 292,440 288,430 C 284,420 280,410 276,400" 
+          fill="none" stroke="#8B4513" stroke-width="1" opacity="0.5"/>
+    
+    <!-- Knot details (re-positioned) -->
+    <ellipse cx="100" cy="520" rx="5" ry="4" fill="#8B4513" opacity="0.7"/>
+    <ellipse cx="310" cy="480" rx="4" ry="5" fill="#8B4513" opacity="0.7"/>
+    <ellipse cx="145" cy="380" rx="3" ry="3" fill="#8B4513" opacity="0.6"/>
+    <ellipse cx="255" cy="320" rx="4" ry="3" fill="#8B4513" opacity="0.6"/>
+  </g>
+
+  <!-- Branch system can be added on top of this new trunk -->
+  <g id="branch-system" fill="url(#barkGradientVertical)" stroke="#5C3D2E" stroke-width="2">
+      <!-- Branches would go here, positioned relative to the new trunk shape -->
+  </g>
+
+</svg>

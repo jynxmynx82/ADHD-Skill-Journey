@@ -1,0 +1,214 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" width="200" height="300">
+  <defs>
+    <!-- Gradient for leaf base -->
+    <linearGradient id="leafGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2ec4b6;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#1a9b8f;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0f7a6f;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Gradient for veins -->
+    <linearGradient id="veinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a9b8f;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#0f7a6f;stop-opacity:0.9" />
+    </linearGradient>
+    
+    <!-- Gradient for leaf edge highlights -->
+    <linearGradient id="highlightGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4dd4c6;stop-opacity:0.6" />
+      <stop offset="100%" style="stop-color:#2ec4b6;stop-opacity:0.3" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Main leaf shape -->
+  <path 
+    d="M100 50 
+       C130 60, 150 80, 160 120
+       C165 140, 170 160, 165 180
+       C160 200, 150 220, 140 240
+       C130 260, 120 270, 100 280
+       C80 270, 70 260, 60 240
+       C50 220, 40 200, 35 180
+       C30 160, 35 140, 40 120
+       C50 80, 70 60, 100 50 Z"
+    fill="url(#leafGradient)"
+    stroke="#1a9b8f"
+    stroke-width="1"
+  />
+  
+  <!-- Central vein (main stem) -->
+  <path 
+    d="M100 50 L100 280"
+    stroke="url(#veinGradient)"
+    stroke-width="3"
+    stroke-linecap="round"
+  />
+  
+  <!-- Primary veins branching from center -->
+  <path 
+    d="M100 80 Q120 85, 130 95"
+    stroke="url(#veinGradient)"
+    stroke-width="2"
+    stroke-linecap="round"
+    fill="none"
+  />
+  <path 
+    d="M100 80 Q80 85, 70 95"
+    stroke="url(#veinGradient)"
+    stroke-width="2"
+    stroke-linecap="round"
+    fill="none"
+  />
+  
+  <path 
+    d="M100 110 Q125 115, 140 130"
+    stroke="url(#veinGradient)"
+    stroke-width="2"
+    stroke-linecap="round"
+    fill="none"
+  />
+  <path 
+    d="M100 110 Q75 115, 60 130"
+    stroke="url(#veinGradient)"
+    stroke-width="2"
+    stroke-linecap="round"
+    fill="none"
+  />
+  
+  <path 
+    d="M100 140 Q130 145, 150 165"
+    stroke="url(#veinGradient)"
+    stroke-width="2"
+    stroke-linecap="round"
+    fill="none"
+  />
+  <path 
+    d="M100 140 Q70 145, 50 165"
+    stroke="url(#veinGradient)"
+    stroke-width="2"
+    stroke-linecap="round"
+    fill="none"
+  />
+  
+  <path 
+    d="M100 170 Q135 175, 155 200"
+    stroke="url(#veinGradient)"
+    stroke-width="2"
+    stroke-linecap="round"
+    fill="none"
+  />
+  <path 
+    d="M100 170 Q65 175, 45 200"
+    stroke="url(#veinGradient)"
+    stroke-width="2"
+    stroke-linecap="round"
+    fill="none"
+  />
+  
+  <path 
+    d="M100 200 Q140 205, 160 230"
+    stroke="url(#veinGradient)"
+    stroke-width="2"
+    stroke-linecap="round"
+    fill="none"
+  />
+  <path 
+    d="M100 200 Q60 205, 40 230"
+    stroke="url(#veinGradient)"
+    stroke-width="2"
+    stroke-linecap="round"
+    fill="none"
+  />
+  
+  <!-- Secondary veins (smaller branches) -->
+  <path 
+    d="M110 90 Q115 92, 118 96"
+    stroke="url(#veinGradient)"
+    stroke-width="1"
+    stroke-linecap="round"
+    fill="none"
+  />
+  <path 
+    d="M90 90 Q85 92, 82 96"
+    stroke="url(#veinGradient)"
+    stroke-width="1"
+    stroke-linecap="round"
+    fill="none"
+  />
+  
+  <path 
+    d="M115 120 Q120 122, 125 128"
+    stroke="url(#veinGradient)"
+    stroke-width="1"
+    stroke-linecap="round"
+    fill="none"
+  />
+  <path 
+    d="M85 120 Q80 122, 75 128"
+    stroke="url(#veinGradient)"
+    stroke-width="1"
+    stroke-linecap="round"
+    fill="none"
+  />
+  
+  <path 
+    d="M120 150 Q125 152, 130 158"
+    stroke="url(#veinGradient)"
+    stroke-width="1"
+    stroke-linecap="round"
+    fill="none"
+  />
+  <path 
+    d="M80 150 Q75 152, 70 158"
+    stroke="url(#veinGradient)"
+    stroke-width="1"
+    stroke-linecap="round"
+    fill="none"
+  />
+  
+  <path 
+    d="M125 180 Q130 182, 135 188"
+    stroke="url(#veinGradient)"
+    stroke-width="1"
+    stroke-linecap="round"
+    fill="none"
+  />
+  <path 
+    d="M75 180 Q70 182, 65 188"
+    stroke="url(#veinGradient)"
+    stroke-width="1"
+    stroke-linecap="round"
+    fill="none"
+  />
+  
+  <!-- Leaf edge highlights -->
+  <path 
+    d="M100 50 
+       C130 60, 150 80, 160 120
+       C165 140, 170 160, 165 180
+       C160 200, 150 220, 140 240
+       C130 260, 120 270, 100 280"
+    stroke="url(#highlightGradient)"
+    stroke-width="2"
+    fill="none"
+  />
+  <path 
+    d="M100 50 
+       C70 60, 50 80, 40 120
+       C35 140, 30 160, 35 180
+       C40 200, 50 220, 60 240
+       C70 260, 80 270, 100 280"
+    stroke="url(#highlightGradient)"
+    stroke-width="2"
+    fill="none"
+  />
+  
+  <!-- Leaf tip detail -->
+  <ellipse 
+    cx="100" 
+    cy="285" 
+    rx="3" 
+    ry="2" 
+    fill="#1a9b8f"
+  />
+</svg>

@@ -317,12 +317,22 @@ export default function Home() {
           <ScrollView style={styles.scrollView}>
             <View style={styles.header}>
               <Text style={styles.appTitle}>Home</Text>
-              <TouchableOpacity 
-                onPress={() => router.push('/(settings)')}
-                style={styles.settingsButton}
-              >
-                <Settings color={colors.primary} size={32} />
-              </TouchableOpacity>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <TouchableOpacity 
+                  onPress={() => router.push('/(tabs)/children')}
+                  style={styles.settingsButton}
+                  accessibilityLabel="Children"
+                >
+                  <Users color={colors.primary} size={32} />
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  onPress={() => router.push('/(settings)')}
+                  style={styles.settingsButton}
+                  accessibilityLabel="Settings"
+                >
+                  <Settings color={colors.primary} size={32} />
+                </TouchableOpacity>
+              </View>
             </View>
             <Text style={styles.welcome}>Welcome! We're here to help!</Text>
             

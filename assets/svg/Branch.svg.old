@@ -1,0 +1,25 @@
+<svg width="250" height="200" viewBox="0 0 250 200" xmlns="http://www.w3.org/2000/svg">
+  <title>Reusable Tree Branch</title>
+  <desc>
+    A single, reusable tree branch component designed to mesh
+    with the 'TreeTrunk.svg' file.
+  </desc>
+
+  <defs>
+    <linearGradient id="barkGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#A0522D; stop-opacity:1" />
+      <stop offset="20%" style="stop-color:#D2B48C; stop-opacity:1" />
+      <stop offset="80%" style="stop-color:#D2B48C; stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8B4513; stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <g id="standalone-branch" fill="url(#barkGradient)" stroke="#5C3D2E" stroke-width="2">
+      <path d="M 0,150 c 50,-15 100,-50 150,-100" stroke-width="1.8"/>
+
+      <g class="sub-branch" transform="translate(95, 75) rotate(25)">
+         <path d="M 0,0 c 30,-5 60,-15 80,-25" stroke-width="1.2"/>
+      </g>
+  </g>
+
+</svg>

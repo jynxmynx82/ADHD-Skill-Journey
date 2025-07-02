@@ -19,7 +19,8 @@ import {
   writeBatch,
   onSnapshot,
   QuerySnapshot,
-  DocumentData
+  DocumentData,
+  setDoc
 } from 'firebase/firestore';
 import { db } from '@/firebaseConfig';
 import { 
@@ -33,7 +34,13 @@ import {
   UpdateProgressForm,
   CreateMilestoneForm,
   SkillFilters,
-  ProgressFilters
+  ProgressFilters,
+  CreateSimpleSkillForm,
+  Journey,
+  ResilienceTree,
+  CreateAdventureForm,
+  Adventure,
+  SimpleSkill
 } from '@/types/skillJourney';
 import { handleAsyncOperation, handleFirebaseError } from '@/lib/errorHandling';
 
@@ -492,6 +499,217 @@ export const realtimeService = {
     return onSnapshot(q, (snapshot: QuerySnapshot) => {
       const progress = snapshot.docs.map(convertFirestoreDoc<SkillProgress>);
       callback(progress);
+    });
+  }
+};
+
+// Helper function to generate unique IDs for React Native
+function generateId() {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}
+
+// ===== SLICE 1: CORE LOOP SERVICE =====
+// Simplified service using nested Firestore structure
+
+export const slice1Service = {
+  // Create a new journey (skill + tree) for a child
+  async createJourney(childId: string, skillData: CreateSimpleSkillForm): Promise<{ data: Journey | null; error: any }> {
+    return handleAsyncOperation(async () => {
+      const skill: SimpleSkill = {
+        id: generateId(), // Generate ID for nested document
+        ...skillData,
+        createdAt: new Date()
+      };
+
+      const resilienceTree: ResilienceTree = {
+        treeLevel: 1,
+        leafCount: 0,
+        branchCount: 1, // Start with 1 branch (the skill itself)
+        lastUpdated: new Date()
+      };
+
+      const journey: Journey = {
+        skillData: skill,
+        resilienceTree
+      };
+
+      // Save to nested structure: /users/{userId}/children/{childId}/journeys/{skillId}
+      const journeyRef = doc(db, 'users', 'temp', 'children', childId, 'journeys', skill.id);
+      await setDoc(journeyRef, journey);
+
+      return journey;
+    }, 'createJourney');
+  },
+
+  // Get all journeys for a child
+  async getJourneys(childId: string): Promise<{ data: Journey[] | null; error: any }> {
+    return handleAsyncOperation(async () => {
+      const journeysRef = collection(db, 'users', 'temp', 'children', childId, 'journeys');
+      const snapshot = await getDocs(journeysRef);
+      
+      const journeys: Journey[] = [];
+      snapshot.forEach(doc => {
+        const data = doc.data() as Journey;
+        
+        // Convert timestamps in the nested skillData
+        const skillData = {
+          ...data.skillData,
+          id: doc.id, // Use document ID as skill ID
+          createdAt: timestampToDate(data.skillData.createdAt)
+        };
+        
+        // Convert timestamps in the resilienceTree
+        const resilienceTree = {
+          ...data.resilienceTree,
+          lastUpdated: timestampToDate(data.resilienceTree.lastUpdated)
+        };
+        
+        journeys.push({
+          skillData,
+          resilienceTree
+        });
+      });
+
+      return journeys.sort((a, b) => b.skillData.createdAt.getTime() - a.skillData.createdAt.getTime());
+    }, 'getJourneys');
+  },
+
+  // Get a single journey
+  async getJourney(childId: string, skillId: string): Promise<{ data: Journey | null; error: any }> {
+    return handleAsyncOperation(async () => {
+      const journeyRef = doc(db, 'users', 'temp', 'children', childId, 'journeys', skillId);
+      const docSnap = await getDoc(journeyRef);
+      
+      if (!docSnap.exists()) return null;
+      
+      const data = docSnap.data() as Journey;
+      
+      // Convert timestamps in the nested skillData
+      const skillData = {
+        ...data.skillData,
+        id: docSnap.id,
+        createdAt: timestampToDate(data.skillData.createdAt)
+      };
+      
+      // Convert timestamps in the resilienceTree
+      const resilienceTree = {
+        ...data.resilienceTree,
+        lastUpdated: timestampToDate(data.resilienceTree.lastUpdated)
+      };
+      
+      return {
+        skillData,
+        resilienceTree
+      };
+    }, 'getJourney');
+  },
+
+  // Log an adventure for a skill
+  async logAdventure(childId: string, skillId: string, adventureData: CreateAdventureForm): Promise<{ data: Adventure | null; error: any }> {
+    return handleAsyncOperation(async () => {
+      const adventure: Adventure = {
+        id: generateId(),
+        ...adventureData,
+        createdAt: new Date()
+      };
+
+      // Add adventure to subcollection
+      const adventuresRef = collection(db, 'users', 'temp', 'children', childId, 'journeys', skillId, 'adventures');
+      await addDoc(adventuresRef, adventure);
+
+      // Update tree (add a leaf)
+      const journeyRef = doc(db, 'users', 'temp', 'children', childId, 'journeys', skillId);
+      const journeySnap = await getDoc(journeyRef);
+      
+      if (journeySnap.exists()) {
+        const journey = journeySnap.data() as Journey;
+        const updatedTree: ResilienceTree = {
+          ...journey.resilienceTree,
+          leafCount: journey.resilienceTree.leafCount + 1,
+          lastUpdated: new Date()
+        };
+
+        // Calculate tree level based on leaf count
+        updatedTree.treeLevel = Math.floor(updatedTree.leafCount / 10) + 1;
+
+        await updateDoc(journeyRef, {
+          'resilienceTree': updatedTree
+        });
+      }
+
+      return adventure;
+    }, 'logAdventure');
+  },
+
+  // Get adventures for a skill (Memory Lane)
+  async getAdventures(childId: string, skillId: string): Promise<{ data: Adventure[] | null; error: any }> {
+    return handleAsyncOperation(async () => {
+      const adventuresRef = collection(db, 'users', 'temp', 'children', childId, 'journeys', skillId, 'adventures');
+      const q = query(adventuresRef, orderBy('createdAt', 'desc'));
+      const snapshot = await getDocs(q);
+      
+      const adventures: Adventure[] = [];
+      snapshot.forEach(doc => {
+        const data = doc.data() as Adventure;
+        adventures.push({
+          ...data,
+          id: doc.id,
+          createdAt: timestampToDate(data.createdAt)
+        });
+      });
+
+      return adventures;
+    }, 'getAdventures');
+  },
+
+  // Real-time listeners for Slice 1
+  onJourneysChange(childId: string, callback: (journeys: Journey[]) => void) {
+    const journeysRef = collection(db, 'users', 'temp', 'children', childId, 'journeys');
+    
+    return onSnapshot(journeysRef, (snapshot) => {
+      const journeys: Journey[] = [];
+      snapshot.forEach(doc => {
+        const data = doc.data() as Journey;
+        
+        // Convert timestamps in the nested skillData
+        const skillData = {
+          ...data.skillData,
+          id: doc.id,
+          createdAt: timestampToDate(data.skillData.createdAt)
+        };
+        
+        // Convert timestamps in the resilienceTree
+        const resilienceTree = {
+          ...data.resilienceTree,
+          lastUpdated: timestampToDate(data.resilienceTree.lastUpdated)
+        };
+        
+        journeys.push({
+          skillData,
+          resilienceTree
+        });
+      });
+      
+      callback(journeys.sort((a, b) => b.skillData.createdAt.getTime() - a.skillData.createdAt.getTime()));
+    });
+  },
+
+  onAdventuresChange(childId: string, skillId: string, callback: (adventures: Adventure[]) => void) {
+    const adventuresRef = collection(db, 'users', 'temp', 'children', childId, 'journeys', skillId, 'adventures');
+    const q = query(adventuresRef, orderBy('createdAt', 'desc'));
+    
+    return onSnapshot(q, (snapshot) => {
+      const adventures: Adventure[] = [];
+      snapshot.forEach(doc => {
+        const data = doc.data() as Adventure;
+        adventures.push({
+          ...data,
+          id: doc.id,
+          createdAt: timestampToDate(data.createdAt)
+        });
+      });
+      
+      callback(adventures);
     });
   }
 }; 

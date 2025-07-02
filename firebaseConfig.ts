@@ -1,6 +1,5 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { initializeAuth, getAuth, Auth } from 'firebase/auth';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getFirestore, Firestore } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -28,13 +27,11 @@ if (getApps().length === 0) {
   app = getApp();
 }
 
-// Initialize Auth with React Native persistence
+// Initialize Auth without persistence for now to avoid the class definition error
 let auth: Auth;
 try {
-  // Try to initialize with persistence (Firebase v11 approach)
-  auth = initializeAuth(app, {
-    persistence: AsyncStorage as any // Type assertion for compatibility
-  });
+  // Initialize auth without persistence configuration
+  auth = initializeAuth(app);
 } catch (error) {
   // If auth is already initialized, get the existing instance
   auth = getAuth(app);
