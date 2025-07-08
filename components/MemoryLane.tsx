@@ -17,11 +17,11 @@ const WIN_TYPE_EMOJIS: Record<AdventureWinType, string> = {
 };
 
 const WIN_TYPE_LABELS: Record<AdventureWinType, string> = {
-  'tried-best': 'We tried our best!',
-  'no-frustration': 'We didn\'t get frustrated!',
-  'laughed-about-it': 'We laughed about it!',
-  'made-progress': 'We made progress!',
-  'kept-going': 'We kept going!',
+  'tried-best': 'We gave it our all!',
+  'no-frustration': 'We stayed calm!',
+  'laughed-about-it': 'We found the fun!',
+  'made-progress': 'We got better!',
+  'kept-going': 'We didn\'t give up!',
   'custom': 'Custom win',
 };
 
@@ -40,7 +40,16 @@ const formatDate = (date: Date): string => {
   });
 };
 
-const AdventureItem: React.FC<{ adventure: Adventure }> = ({ adventure }) => {
+const getEncouragingMessage = (adventureCount: number): string => {
+  if (adventureCount === 0) return "Your story is just beginning!";
+  if (adventureCount === 1) return "Your first adventure! 🌱";
+  if (adventureCount <= 3) return "You're building something amazing!";
+  if (adventureCount <= 7) return "Look how far you've come!";
+  if (adventureCount <= 14) return "You're becoming unstoppable!";
+  return "You're absolutely incredible!";
+};
+
+const AdventureItem: React.FC<{ adventure: Adventure; index: number }> = ({ adventure, index }) => {
   return (
     <View style={styles.adventureItem}>
       <View style={styles.adventureHeader}>
@@ -77,7 +86,7 @@ export const MemoryLane: React.FC<MemoryLaneProps> = ({
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>Loading adventures...</Text>
+        <Text style={styles.loadingText}>Loading your adventures...</Text>
       </View>
     );
   }
@@ -86,24 +95,27 @@ export const MemoryLane: React.FC<MemoryLaneProps> = ({
     return (
       <View style={styles.emptyContainer}>
         <Text style={styles.emptyEmoji}>🌱</Text>
-        <Text style={styles.emptyTitle}>No adventures yet!</Text>
+        <Text style={styles.emptyTitle}>Your story starts here!</Text>
         <Text style={styles.emptyText}>
-          Start your journey by logging your first adventure. Every adventure helps your tree grow!
+          Every adventure you log helps your progress grow stronger. Ready to start your journey?
         </Text>
       </View>
     );
   }
 
+  const encouragingMessage = getEncouragingMessage(adventures.length);
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Memory Lane</Text>
+      <Text style={styles.title}>Your Adventure Story</Text>
+      <Text style={styles.encouragingMessage}>{encouragingMessage}</Text>
       <Text style={styles.subtitle}>
-        {adventures.length} adventure{adventures.length !== 1 ? 's' : ''} logged
+        {adventures.length} adventure{adventures.length !== 1 ? 's' : ''} in your story
       </Text>
       
       <View style={styles.listContainer}>
-        {adventures.map((adventure) => (
-          <AdventureItem key={adventure.id} adventure={adventure} />
+        {adventures.map((adventure, index) => (
+          <AdventureItem key={adventure.id} adventure={adventure} index={index} />
         ))}
       </View>
     </View>
@@ -122,6 +134,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 20,
     marginBottom: 8,
+  },
+  encouragingMessage: {
+    fontSize: 16,
+    color: '#4CAF50',
+    textAlign: 'center',
+    marginBottom: 8,
+    fontWeight: '600',
   },
   subtitle: {
     fontSize: 14,
@@ -202,17 +221,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
     lineHeight: 22,
-    marginBottom: 8,
   },
   photoPlaceholder: {
+    marginTop: 8,
+    padding: 8,
     backgroundColor: '#f0f0f0',
-    borderRadius: 8,
-    padding: 12,
-    alignItems: 'center',
+    borderRadius: 6,
   },
   photoText: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#666',
+    textAlign: 'center',
   },
 });
 

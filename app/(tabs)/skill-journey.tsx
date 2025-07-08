@@ -12,14 +12,14 @@ import {
   RefreshControl,
   Alert
 } from 'react-native';
-import { Plus, ArrowLeft } from 'lucide-react-native';
+import { Plus, ArrowLeft, Sparkles } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';
 import { useFamily } from '@/context/FamilyContext';
 import { slice1Service } from '@/lib/skillJourneyService';
 import { Journey, Adventure, CreateSimpleSkillForm, CreateAdventureForm } from '@/types/skillJourney';
-import ResilienceTreeComponent from '@/components/ResilienceTree';
+
 import AdventureLogger from '@/components/AdventureLogger';
 import MemoryLane from '@/components/MemoryLane';
 import SimpleSkillForm from '@/components/SimpleSkillForm';
@@ -121,7 +121,7 @@ export default function SkillJourneyScreen() {
         setJourneys(prev => [result.data!, ...prev]);
         setSelectedJourney(result.data);
         setShowCreateForm(false);
-        Alert.alert('Success', 'Skill journey created! Start logging adventures to help your tree grow.');
+        Alert.alert('Success', 'Skill journey created! Start logging adventures to build your progress.');
       }
     } catch (error) {
       console.error('Error creating skill:', error);
@@ -140,12 +140,12 @@ export default function SkillJourneyScreen() {
       const result = await slice1Service.logAdventure(selectedChildId, selectedJourney.skillData.id, adventureData);
       if (result.data) {
         setAdventures(prev => [result.data!, ...prev]);
-        // Update the journey's tree data
+        // Update the journey's progress data
         setSelectedJourney(prev => prev ? {
           ...prev,
-          resilienceTree: {
-            ...prev.resilienceTree,
-            leafCount: prev.resilienceTree.leafCount + 1,
+          progress: {
+            ...prev.progress,
+            adventureCount: prev.progress.adventureCount + 1,
             lastUpdated: new Date()
           }
         } : null);
@@ -240,6 +240,10 @@ export default function SkillJourneyScreen() {
     );
   }
 
+  const selectedChild = children.find(c => c.id === selectedChildId);
+  const totalAdventures = adventures.length;
+  const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
@@ -253,7 +257,7 @@ export default function SkillJourneyScreen() {
           <View>
             <Text style={[styles.title, { color: colors.text }]}>Skill Journey</Text>
             <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-              {children.find(c => c.id === selectedChildId)?.name || 'Select a child'}
+              {selectedChild?.name || 'Select a child'}
             </Text>
           </View>
           <TouchableOpacity 
@@ -267,13 +271,39 @@ export default function SkillJourneyScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Daily Check-in Section */}
+        {journeys.length > 0 && (
+          <View style={[styles.dailyCheckin, { backgroundColor: colors.background }]}>
+            <View style={styles.checkinHeader}>
+              <Sparkles size={20} color={colors.primary} />
+              <Text style={[styles.checkinTitle, { color: colors.text }]}>
+                How's {today} going?
+              </Text>
+            </View>
+            <Text style={[styles.checkinSubtitle, { color: colors.textSecondary }]}>
+              Share a quick moment from today's adventures
+            </Text>
+            
+            {selectedJourney && (
+              <TouchableOpacity 
+                style={[styles.quickLogButton, { backgroundColor: colors.primary }]}
+                onPress={() => setShowAdventureLogger(true)}
+              >
+                <Text style={[styles.quickLogText, { color: colors.background }]}>
+                  Log {selectedJourney.skillData.name} Adventure
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+
         {journeys.length === 0 ? (
           <View style={styles.emptyJourneysContainer}>
             <Text style={[styles.emptyJourneysTitle, { color: colors.text }]}>
               No Skills Yet
             </Text>
             <Text style={[styles.emptyJourneysText, { color: colors.textSecondary }]}>
-              Create your first skill journey to start growing your resilience tree!
+              Create your first skill journey to start building your adventure story!
             </Text>
             <TouchableOpacity 
               style={[styles.createFirstButton, { backgroundColor: colors.primary }]}
@@ -307,8 +337,8 @@ export default function SkillJourneyScreen() {
                     <Text style={[styles.journeyCategory, { color: colors.textSecondary }]}>
                       {journey.skillData.category}
                     </Text>
-                    <Text style={[styles.journeyLeaves, { color: colors.primary }]}>
-                      {journey.resilienceTree.leafCount} leaves
+                    <Text style={[styles.journeyAdventures, { color: colors.primary }]}>
+                      {journey.progress.adventureCount} adventures
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -317,11 +347,24 @@ export default function SkillJourneyScreen() {
 
             {selectedJourney && (
               <>
-                {/* Resilience Tree */}
-                <View style={styles.treeSection}>
-                  <Text style={[styles.sectionTitle, { color: colors.text }]}>You're Growing!</Text>
-                  <View style={styles.treeContainer}>
-                    <ResilienceTreeComponent tree={selectedJourney.resilienceTree} size="medium" />
+                {/* Progress Section */}
+                <View style={styles.progressSection}>
+                  <Text style={[styles.sectionTitle, { color: colors.text }]}>Progress</Text>
+                  <View style={styles.progressContainer}>
+                    <View style={styles.progressBar}>
+                      <View 
+                        style={[
+                          styles.progressFill, 
+                          { 
+                            backgroundColor: colors.primary,
+                            width: `${Math.min((selectedJourney.progress.adventureCount / 10) * 100, 100)}%`
+                          }
+                        ]} 
+                      />
+                    </View>
+                    <Text style={[styles.progressText, { color: colors.textSecondary }]}>
+                      {selectedJourney.progress.adventureCount} adventures logged
+                    </Text>
                   </View>
                   <TouchableOpacity 
                     style={[styles.logAdventureButton, { backgroundColor: colors.primary }]}
@@ -469,17 +512,35 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginBottom: 8,
   },
-  journeyLeaves: {
+  journeyAdventures: {
     fontSize: 14,
     fontWeight: '500',
   },
-  treeSection: {
+  progressSection: {
     alignItems: 'center',
     marginBottom: 24,
   },
-  treeContainer: {
+  progressContainer: {
     marginTop: 30,
     marginBottom: 16,
+    alignItems: 'center',
+    width: '100%',
+  },
+  progressBar: {
+    width: '80%',
+    height: 8,
+    backgroundColor: '#E0E0E0',
+    borderRadius: 4,
+    marginBottom: 8,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  progressText: {
+    fontSize: 14,
+    textAlign: 'center',
   },
   logAdventureButton: {
     padding: 16,
@@ -493,5 +554,34 @@ const styles = StyleSheet.create({
   },
   memoryLaneSection: {
     flex: 1,
+  },
+  dailyCheckin: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  checkinHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  checkinTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  checkinSubtitle: {
+    fontSize: 16,
+    marginBottom: 16,
+  },
+  quickLogButton: {
+    padding: 12,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  quickLogText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
 }); 

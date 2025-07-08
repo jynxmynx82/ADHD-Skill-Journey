@@ -1,715 +1,226 @@
 /**
- * Skill Journey Service
- * Firebase operations for managing skill development and progress tracking
+ * Skill Journey Service - Slice 1 (Flow Mode)
+ * Firebase operations for the simplified adventure-based system
  */
 
 import { 
   collection, 
   doc, 
   addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  getDoc, 
   getDocs, 
+  getDoc, 
+  updateDoc, 
   query, 
   where, 
-  orderBy, 
-  limit, 
+  orderBy,
   Timestamp,
-  writeBatch,
-  onSnapshot,
-  QuerySnapshot,
-  DocumentData,
-  setDoc
+  serverTimestamp 
 } from 'firebase/firestore';
 import { db } from '@/firebaseConfig';
 import { 
-  Skill, 
-  SkillProgress, 
-  SkillMilestone, 
-  AIStory, 
-  SkillJourneyStats,
-  ParentInsight,
-  CreateSkillForm,
-  UpdateProgressForm,
-  CreateMilestoneForm,
-  SkillFilters,
-  ProgressFilters,
-  CreateSimpleSkillForm,
-  Journey,
-  ResilienceTree,
+  SimpleSkill, 
+  Adventure, 
+  Journey, 
+  CreateSimpleSkillForm, 
   CreateAdventureForm,
-  Adventure,
-  SimpleSkill
+  JourneyProgress,
+  AdventureWinType 
 } from '@/types/skillJourney';
-import { handleAsyncOperation, handleFirebaseError } from '@/lib/errorHandling';
 
-// Collection names
-const COLLECTIONS = {
-  SKILLS: 'skills',
-  PROGRESS: 'skill_progress',
-  MILESTONES: 'skill_milestones',
-  STORIES: 'ai_stories',
-  STATS: 'skill_journey_stats',
-  INSIGHTS: 'parent_insights'
-} as const;
-
-// Convert Firestore timestamp to Date
-const timestampToDate = (timestamp: Timestamp | Date): Date => {
-  if (timestamp instanceof Date) return timestamp;
-  return timestamp.toDate();
+// Helper function to convert Firestore timestamps to Date objects
+const timestampToDate = (timestamp: any): Date => {
+  if (timestamp instanceof Timestamp) {
+    return timestamp.toDate();
+  }
+  if (timestamp instanceof Date) {
+    return timestamp;
+  }
+  if (typeof timestamp === 'string') {
+    return new Date(timestamp);
+  }
+  return new Date();
 };
 
-// Convert Date to Firestore timestamp
+// Helper function to convert Date to Firestore timestamp
 const dateToTimestamp = (date: Date): Timestamp => {
   return Timestamp.fromDate(date);
 };
 
-// Convert Firestore document to typed object
-const convertFirestoreDoc = <T>(doc: DocumentData): T => {
-  const data = doc.data();
-  const converted: any = { id: doc.id, ...data };
-  
-  // Convert timestamps to dates
-  Object.keys(converted).forEach(key => {
-    if (converted[key] instanceof Timestamp) {
-      converted[key] = timestampToDate(converted[key]);
-    }
-  });
-  
-  return converted as T;
-};
-
-// Skills CRUD operations
-export const skillService = {
-  // Create a new skill
-  async createSkill(childId: string, skillData: CreateSkillForm): Promise<{ data: Skill | null; error: any }> {
-    return handleAsyncOperation(async () => {
-      const skill: Omit<Skill, 'id'> = {
-        ...skillData,
-        childId,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        isActive: true
-      };
-      
-      const docRef = await addDoc(collection(db, COLLECTIONS.SKILLS), skill);
-      return { ...skill, id: docRef.id };
-    }, 'createSkill');
-  },
-
-  // Get skills for a child
-  async getSkills(childId: string, filters?: SkillFilters): Promise<{ data: Skill[] | null; error: any }> {
-    return handleAsyncOperation(async () => {
-      let q = query(
-        collection(db, COLLECTIONS.SKILLS),
-        where('childId', '==', childId),
-        orderBy('createdAt', 'desc')
-      );
-
-      if (filters?.category) {
-        q = query(q, where('category', '==', filters.category));
-      }
-      if (filters?.isActive !== undefined) {
-        q = query(q, where('isActive', '==', filters.isActive));
-      }
-
-      const snapshot = await getDocs(q);
-      let skills = snapshot.docs.map(convertFirestoreDoc<Skill>);
-
-      // Apply text search filter
-      if (filters?.searchQuery) {
-        const query = filters.searchQuery.toLowerCase();
-        skills = skills.filter(skill => 
-          skill.name.toLowerCase().includes(query) ||
-          skill.description.toLowerCase().includes(query)
-        );
-      }
-
-      return skills;
-    }, 'getSkills');
-  },
-
-  // Get a single skill
-  async getSkill(skillId: string): Promise<{ data: Skill | null; error: any }> {
-    return handleAsyncOperation(async () => {
-      const docRef = doc(db, COLLECTIONS.SKILLS, skillId);
-      const docSnap = await getDoc(docRef);
-      
-      if (!docSnap.exists()) return null;
-      return convertFirestoreDoc<Skill>(docSnap);
-    }, 'getSkill');
-  },
-
-  // Update a skill
-  async updateSkill(skillId: string, updates: Partial<Skill>): Promise<{ data: void | null; error: any }> {
-    return handleAsyncOperation(async () => {
-      const docRef = doc(db, COLLECTIONS.SKILLS, skillId);
-      await updateDoc(docRef, {
-        ...updates,
-        updatedAt: new Date()
-      });
-    }, 'updateSkill');
-  },
-
-  // Delete a skill (soft delete by setting isActive to false)
-  async deleteSkill(skillId: string): Promise<{ data: void | null; error: any }> {
-    return handleAsyncOperation(async () => {
-      await this.updateSkill(skillId, { isActive: false });
-    }, 'deleteSkill');
-  }
-};
-
-// Progress tracking operations
-export const progressService = {
-  // Record progress for a skill
-  async recordProgress(childId: string, skillId: string, progressData: UpdateProgressForm): Promise<{ data: SkillProgress | null; error: any }> {
-    return handleAsyncOperation(async () => {
-      const progress: Omit<SkillProgress, 'id'> = {
-        skillId,
-        childId,
-        date: new Date(),
-        ...progressData,
-        createdAt: new Date()
-      };
-      
-      const docRef = await addDoc(collection(db, COLLECTIONS.PROGRESS), progress);
-      return { ...progress, id: docRef.id };
-    }, 'recordProgress');
-  },
-
-  // Get progress for a skill
-  async getSkillProgress(skillId: string, filters?: ProgressFilters): Promise<{ data: SkillProgress[] | null; error: any }> {
-    return handleAsyncOperation(async () => {
-      let q = query(
-        collection(db, COLLECTIONS.PROGRESS),
-        where('skillId', '==', skillId),
-        orderBy('date', 'desc')
-      );
-
-      if (filters?.status) {
-        q = query(q, where('status', '==', filters.status));
-      }
-
-      const snapshot = await getDocs(q);
-      let progress = snapshot.docs.map(convertFirestoreDoc<SkillProgress>);
-
-      // Apply date range filter
-      if (filters?.dateRange) {
-        progress = progress.filter(p => 
-          p.date >= filters.dateRange!.start && p.date <= filters.dateRange!.end
-        );
-      }
-
-      return progress;
-    }, 'getSkillProgress');
-  },
-
-  // Get all progress for a child
-  async getChildProgress(childId: string, filters?: ProgressFilters): Promise<{ data: SkillProgress[] | null; error: any }> {
-    return handleAsyncOperation(async () => {
-      let q = query(
-        collection(db, COLLECTIONS.PROGRESS),
-        where('childId', '==', childId),
-        orderBy('date', 'desc')
-      );
-
-      const snapshot = await getDocs(q);
-      let progress = snapshot.docs.map(convertFirestoreDoc<SkillProgress>);
-
-      // Apply filters
-      if (filters?.status) {
-        progress = progress.filter(p => p.status === filters.status);
-      }
-      if (filters?.dateRange) {
-        progress = progress.filter(p => 
-          p.date >= filters.dateRange!.start && p.date <= filters.dateRange!.end
-        );
-      }
-
-      return progress;
-    }, 'getChildProgress');
-  },
-
-  // Get latest progress for each skill
-  async getLatestProgress(childId: string): Promise<{ data: Record<string, SkillProgress> | null; error: any }> {
-    return handleAsyncOperation(async () => {
-      const progressResult = await this.getChildProgress(childId);
-      if (progressResult.error || !progressResult.data) {
-        return {};
-      }
-      
-      const progress = progressResult.data;
-      const latest: Record<string, SkillProgress> = {};
-      
-      progress.forEach(p => {
-        if (!latest[p.skillId] || p.date > latest[p.skillId].date) {
-          latest[p.skillId] = p;
-        }
-      });
-      
-      return latest;
-    }, 'getLatestProgress');
-  }
-};
-
-// Milestones operations
-export const milestoneService = {
-  // Create a milestone
-  async createMilestone(childId: string, skillId: string, milestoneData: CreateMilestoneForm): Promise<{ data: SkillMilestone | null; error: any }> {
-    return handleAsyncOperation(async () => {
-      const milestone: Omit<SkillMilestone, 'id'> = {
-        skillId,
-        childId,
-        ...milestoneData,
-        date: new Date(),
-        isCelebrated: false,
-        createdAt: new Date()
-      };
-      
-      const docRef = await addDoc(collection(db, COLLECTIONS.MILESTONES), milestone);
-      return { ...milestone, id: docRef.id };
-    }, 'createMilestone');
-  },
-
-  // Get milestones for a skill
-  async getSkillMilestones(skillId: string): Promise<{ data: SkillMilestone[] | null; error: any }> {
-    return handleAsyncOperation(async () => {
-      const q = query(
-        collection(db, COLLECTIONS.MILESTONES),
-        where('skillId', '==', skillId),
-        orderBy('date', 'desc')
-      );
-      
-      const snapshot = await getDocs(q);
-      return snapshot.docs.map(convertFirestoreDoc<SkillMilestone>);
-    }, 'getSkillMilestones');
-  },
-
-  // Get all milestones for a child
-  async getChildMilestones(childId: string): Promise<{ data: SkillMilestone[] | null; error: any }> {
-    return handleAsyncOperation(async () => {
-      const q = query(
-        collection(db, COLLECTIONS.MILESTONES),
-        where('childId', '==', childId),
-        orderBy('date', 'desc')
-      );
-      
-      const snapshot = await getDocs(q);
-      return snapshot.docs.map(convertFirestoreDoc<SkillMilestone>);
-    }, 'getChildMilestones');
-  },
-
-  // Mark milestone as celebrated
-  async celebrateMilestone(milestoneId: string): Promise<{ data: void | null; error: any }> {
-    return handleAsyncOperation(async () => {
-      const docRef = doc(db, COLLECTIONS.MILESTONES, milestoneId);
-      await updateDoc(docRef, { isCelebrated: true });
-    }, 'celebrateMilestone');
-  }
-};
-
-// AI Stories operations
-export const storyService = {
-  // Create an AI story
-  async createStory(storyData: Omit<AIStory, 'id' | 'createdAt' | 'updatedAt'>): Promise<{ data: AIStory | null; error: any }> {
-    return handleAsyncOperation(async () => {
-      const story: Omit<AIStory, 'id'> = {
-        ...storyData,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
-      
-      const docRef = await addDoc(collection(db, COLLECTIONS.STORIES), story);
-      return { ...story, id: docRef.id };
-    }, 'createStory');
-  },
-
-  // Get stories for a child
-  async getChildStories(childId: string): Promise<{ data: AIStory[] | null; error: any }> {
-    return handleAsyncOperation(async () => {
-      const q = query(
-        collection(db, COLLECTIONS.STORIES),
-        where('childId', '==', childId),
-        orderBy('createdAt', 'desc')
-      );
-      
-      const snapshot = await getDocs(q);
-      return snapshot.docs.map(convertFirestoreDoc<AIStory>);
-    }, 'getChildStories');
-  },
-
-  // Mark story as read
-  async markStoryAsRead(storyId: string): Promise<{ data: void | null; error: any }> {
-    return handleAsyncOperation(async () => {
-      const docRef = doc(db, COLLECTIONS.STORIES, storyId);
-      await updateDoc(docRef, { 
-        lastRead: new Date(),
-        readCount: (await getDoc(docRef)).data()?.readCount + 1 || 1
-      });
-    }, 'markStoryAsRead');
-  },
-
-  // Toggle story favorite status
-  async toggleStoryFavorite(storyId: string): Promise<{ data: void | null; error: any }> {
-    return handleAsyncOperation(async () => {
-      const docRef = doc(db, COLLECTIONS.STORIES, storyId);
-      const docSnap = await getDoc(docRef);
-      const currentFavorite = docSnap.data()?.isFavorite || false;
-      
-      await updateDoc(docRef, { 
-        isFavorite: !currentFavorite,
-        updatedAt: new Date()
-      });
-    }, 'toggleStoryFavorite');
-  }
-};
-
-// Stats operations
-export const statsService = {
-  // Calculate and update stats for a child
-  async updateChildStats(childId: string): Promise<{ data: SkillJourneyStats | null; error: any }> {
-    return handleAsyncOperation(async () => {
-      // Get all data for the child
-      const [skillsResult, progressResult, milestonesResult] = await Promise.all([
-        skillService.getSkills(childId),
-        progressService.getChildProgress(childId),
-        milestoneService.getChildMilestones(childId)
-      ]);
-
-      if (skillsResult.error || progressResult.error || milestonesResult.error) {
-        throw new Error('Failed to fetch data for stats calculation');
-      }
-
-      const skills = skillsResult.data || [];
-      const progress = progressResult.data || [];
-      const milestones = milestonesResult.data || [];
-
-      // Calculate stats
-      const activeSkills = skills.filter(s => s.isActive);
-      const masteredSkills = progress.filter(p => p.status === 'mastered').length;
-      
-      const totalPracticeTime = progress.reduce((sum, p) => sum + (p.duration || 0), 0);
-      const averageEffort = progress.length > 0 
-        ? progress.reduce((sum, p) => sum + p.effort, 0) / progress.length 
-        : 0;
-      const averageMood = progress.length > 0 
-        ? progress.reduce((sum, p) => sum + p.mood, 0) / progress.length 
-        : 0;
-
-      // Calculate streak (simplified - could be more sophisticated)
-      const sortedProgress = progress.sort((a, b) => b.date.getTime() - a.date.getTime());
-      let currentStreak = 0;
-      let longestStreak = 0;
-      let tempStreak = 0;
-      
-      for (let i = 0; i < sortedProgress.length; i++) {
-        if (i === 0 || 
-            Math.abs(sortedProgress[i].date.getTime() - sortedProgress[i-1].date.getTime()) <= 24 * 60 * 60 * 1000) {
-          tempStreak++;
-          if (i === 0) currentStreak = tempStreak;
-        } else {
-          longestStreak = Math.max(longestStreak, tempStreak);
-          tempStreak = 1;
-        }
-      }
-      longestStreak = Math.max(longestStreak, tempStreak);
-
-      const stats: SkillJourneyStats = {
-        childId,
-        totalSkills: skills.length,
-        activeSkills: activeSkills.length,
-        masteredSkills,
-        totalPracticeTime,
-        currentStreak,
-        longestStreak,
-        totalMilestones: milestones.length,
-        averageEffort,
-        averageMood,
-        lastUpdated: new Date()
-      };
-
-      // Save to Firestore
-      const existingStats = await this.getChildStats(childId);
-      if (existingStats.data) {
-        // Use the document ID from the existing stats
-        const docRef = doc(db, COLLECTIONS.STATS, existingStats.data.childId);
-        await updateDoc(docRef, {
-          totalSkills: stats.totalSkills,
-          activeSkills: stats.activeSkills,
-          masteredSkills: stats.masteredSkills,
-          totalPracticeTime: stats.totalPracticeTime,
-          currentStreak: stats.currentStreak,
-          longestStreak: stats.longestStreak,
-          totalMilestones: stats.totalMilestones,
-          averageEffort: stats.averageEffort,
-          averageMood: stats.averageMood,
-          lastUpdated: stats.lastUpdated
-        });
-      } else {
-        // Create new stats document
-        await addDoc(collection(db, COLLECTIONS.STATS), stats);
-      }
-
-      return stats;
-    }, 'updateChildStats');
-  },
-
-  // Get stats for a child
-  async getChildStats(childId: string): Promise<{ data: SkillJourneyStats | null; error: any }> {
-    return handleAsyncOperation(async () => {
-      const q = query(
-        collection(db, COLLECTIONS.STATS),
-        where('childId', '==', childId),
-        limit(1)
-      );
-      
-      const snapshot = await getDocs(q);
-      if (snapshot.empty) return null;
-      
-      return convertFirestoreDoc<SkillJourneyStats>(snapshot.docs[0]);
-    }, 'getChildStats');
-  }
-};
-
-// Real-time listeners
-export const realtimeService = {
-  // Listen to skills changes
-  onSkillsChange(childId: string, callback: (skills: Skill[]) => void) {
-    const q = query(
-      collection(db, COLLECTIONS.SKILLS),
-      where('childId', '==', childId),
-      orderBy('createdAt', 'desc')
-    );
-    
-    return onSnapshot(q, (snapshot: QuerySnapshot) => {
-      const skills = snapshot.docs.map(convertFirestoreDoc<Skill>);
-      callback(skills);
-    });
-  },
-
-  // Listen to progress changes for a skill
-  onSkillProgressChange(skillId: string, callback: (progress: SkillProgress[]) => void) {
-    const q = query(
-      collection(db, COLLECTIONS.PROGRESS),
-      where('skillId', '==', skillId),
-      orderBy('date', 'desc')
-    );
-    
-    return onSnapshot(q, (snapshot: QuerySnapshot) => {
-      const progress = snapshot.docs.map(convertFirestoreDoc<SkillProgress>);
-      callback(progress);
-    });
-  }
-};
-
-// Helper function to generate unique IDs for React Native
-function generateId() {
-  return Date.now().toString(36) + Math.random().toString(36).substr(2);
-}
-
-// ===== SLICE 1: CORE LOOP SERVICE =====
-// Simplified service using nested Firestore structure
-
 export const slice1Service = {
-  // Create a new journey (skill + tree) for a child
-  async createJourney(childId: string, skillData: CreateSimpleSkillForm): Promise<{ data: Journey | null; error: any }> {
-    return handleAsyncOperation(async () => {
-      const skill: SimpleSkill = {
-        id: generateId(), // Generate ID for nested document
-        ...skillData,
-        createdAt: new Date()
-      };
+  // Get all journeys for a child
+  async getJourneys(childId: string): Promise<{ data: Journey[] | null; error: string | null }> {
+    try {
+      console.log('Getting journeys for childId:', childId);
+      
+      const journeysRef = collection(db, 'journeys');
+      const q = query(
+        journeysRef,
+        where('childId', '==', childId),
+        orderBy('createdAt', 'desc')
+      );
+      
+      const querySnapshot = await getDocs(q);
+      const journeys: Journey[] = [];
+      
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        console.log('Journey data:', data);
+        
+        // Convert timestamps in the progress
+        const progress: JourneyProgress = {
+          ...data.progress,
+          lastUpdated: timestampToDate(data.progress.lastUpdated)
+        };
+        
+        const journey: Journey = {
+          skillData: {
+            ...data.skillData,
+            createdAt: timestampToDate(data.skillData.createdAt)
+          },
+          progress
+        };
+        
+        journeys.push(journey);
+      });
+      
+      console.log('Processed journeys:', journeys);
+      return { data: journeys, error: null };
+    } catch (error) {
+      console.error('Error getting journeys:', error);
+      return { data: null, error: 'Failed to get journeys' };
+    }
+  },
 
-      const resilienceTree: ResilienceTree = {
-        treeLevel: 1,
-        leafCount: 0,
-        branchCount: 1, // Start with 1 branch (the skill itself)
+  // Create a new journey (skill + progress) for a child
+  async createJourney(childId: string, skillData: CreateSimpleSkillForm): Promise<{ data: Journey | null; error: string | null }> {
+    try {
+      console.log('Creating journey for childId:', childId, 'skillData:', skillData);
+      
+      const progress: JourneyProgress = {
+        adventureCount: 0,
         lastUpdated: new Date()
       };
-
+      
+      const journeyData = {
+        childId,
+        skillData: {
+          ...skillData,
+          id: `skill_${Date.now()}`,
+          createdAt: new Date()
+        },
+        progress,
+        createdAt: serverTimestamp()
+      };
+      
+      const docRef = await addDoc(collection(db, 'journeys'), journeyData);
+      console.log('Journey created with ID:', docRef.id);
+      
       const journey: Journey = {
-        skillData: skill,
-        resilienceTree
+        skillData: journeyData.skillData,
+        progress
       };
-
-      // Save to nested structure: /users/{userId}/children/{childId}/journeys/{skillId}
-      const journeyRef = doc(db, 'users', 'temp', 'children', childId, 'journeys', skill.id);
-      await setDoc(journeyRef, journey);
-
-      return journey;
-    }, 'createJourney');
+      
+      return { data: journey, error: null };
+    } catch (error) {
+      console.error('Error creating journey:', error);
+      return { data: null, error: 'Failed to create journey' };
+    }
   },
 
-  // Get all journeys for a child
-  async getJourneys(childId: string): Promise<{ data: Journey[] | null; error: any }> {
-    return handleAsyncOperation(async () => {
-      const journeysRef = collection(db, 'users', 'temp', 'children', childId, 'journeys');
-      const snapshot = await getDocs(journeysRef);
+  // Get adventures for a specific skill
+  async getAdventures(childId: string, skillId: string): Promise<{ data: Adventure[] | null; error: string | null }> {
+    try {
+      console.log('Getting adventures for childId:', childId, 'skillId:', skillId);
       
-      const journeys: Journey[] = [];
-      snapshot.forEach(doc => {
-        const data = doc.data() as Journey;
-        
-        // Convert timestamps in the nested skillData
-        const skillData = {
-          ...data.skillData,
-          id: doc.id, // Use document ID as skill ID
-          createdAt: timestampToDate(data.skillData.createdAt)
+      const adventuresRef = collection(db, 'adventures');
+      const q = query(
+        adventuresRef,
+        where('childId', '==', childId),
+        where('skillId', '==', skillId),
+        orderBy('createdAt', 'desc')
+      );
+      
+      const querySnapshot = await getDocs(q);
+      const adventures: Adventure[] = [];
+      
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const adventure: Adventure = {
+          id: doc.id,
+          text: data.text,
+          winType: data.winType,
+          photoUrl: data.photoUrl,
+          createdAt: timestampToDate(data.createdAt)
         };
-        
-        // Convert timestamps in the resilienceTree
-        const resilienceTree = {
-          ...data.resilienceTree,
-          lastUpdated: timestampToDate(data.resilienceTree.lastUpdated)
-        };
-        
-        journeys.push({
-          skillData,
-          resilienceTree
-        });
+        adventures.push(adventure);
       });
-
-      return journeys.sort((a, b) => b.skillData.createdAt.getTime() - a.skillData.createdAt.getTime());
-    }, 'getJourneys');
+      
+      console.log('Processed adventures:', adventures);
+      return { data: adventures, error: null };
+    } catch (error) {
+      console.error('Error getting adventures:', error);
+      return { data: null, error: 'Failed to get adventures' };
+    }
   },
 
-  // Get a single journey
-  async getJourney(childId: string, skillId: string): Promise<{ data: Journey | null; error: any }> {
-    return handleAsyncOperation(async () => {
-      const journeyRef = doc(db, 'users', 'temp', 'children', childId, 'journeys', skillId);
-      const docSnap = await getDoc(journeyRef);
+  // Log a new adventure and update progress
+  async logAdventure(childId: string, skillId: string, adventureData: CreateAdventureForm): Promise<{ data: Adventure | null; error: string | null }> {
+    try {
+      console.log('Logging adventure for childId:', childId, 'skillId:', skillId, 'adventureData:', adventureData);
       
-      if (!docSnap.exists()) return null;
-      
-      const data = docSnap.data() as Journey;
-      
-      // Convert timestamps in the nested skillData
-      const skillData = {
-        ...data.skillData,
-        id: docSnap.id,
-        createdAt: timestampToDate(data.skillData.createdAt)
+      // First, log the adventure
+      const adventureDoc = {
+        childId,
+        skillId,
+        text: adventureData.text,
+        winType: adventureData.winType,
+        photoUrl: adventureData.photoUrl,
+        createdAt: serverTimestamp()
       };
       
-      // Convert timestamps in the resilienceTree
-      const resilienceTree = {
-        ...data.resilienceTree,
-        lastUpdated: timestampToDate(data.resilienceTree.lastUpdated)
+      const adventureRef = await addDoc(collection(db, 'adventures'), adventureDoc);
+      console.log('Adventure logged with ID:', adventureRef.id);
+      
+      // Then, update the journey's progress
+      const journeysRef = collection(db, 'journeys');
+      const journeyQuery = query(
+        journeysRef,
+        where('childId', '==', childId),
+        where('skillData.id', '==', skillId)
+      );
+      
+      const journeySnapshot = await getDocs(journeyQuery);
+      if (journeySnapshot.empty) {
+        throw new Error('Journey not found');
+      }
+      
+      const journeyDoc = journeySnapshot.docs[0];
+      const journeyData = journeyDoc.data();
+      
+      const updatedProgress: JourneyProgress = {
+        ...journeyData.progress,
+        adventureCount: journeyData.progress.adventureCount + 1,
+        lastUpdated: new Date()
       };
       
-      return {
-        skillData,
-        resilienceTree
-      };
-    }, 'getJourney');
-  },
-
-  // Log an adventure for a skill
-  async logAdventure(childId: string, skillId: string, adventureData: CreateAdventureForm): Promise<{ data: Adventure | null; error: any }> {
-    return handleAsyncOperation(async () => {
+      await updateDoc(journeyDoc.ref, {
+        'progress': updatedProgress
+      });
+      
+      console.log('Progress updated:', updatedProgress);
+      
       const adventure: Adventure = {
-        id: generateId(),
-        ...adventureData,
+        id: adventureRef.id,
+        text: adventureData.text,
+        winType: adventureData.winType,
+        photoUrl: adventureData.photoUrl,
         createdAt: new Date()
       };
-
-      // Add adventure to subcollection
-      const adventuresRef = collection(db, 'users', 'temp', 'children', childId, 'journeys', skillId, 'adventures');
-      await addDoc(adventuresRef, adventure);
-
-      // Update tree (add a leaf)
-      const journeyRef = doc(db, 'users', 'temp', 'children', childId, 'journeys', skillId);
-      const journeySnap = await getDoc(journeyRef);
       
-      if (journeySnap.exists()) {
-        const journey = journeySnap.data() as Journey;
-        const updatedTree: ResilienceTree = {
-          ...journey.resilienceTree,
-          leafCount: journey.resilienceTree.leafCount + 1,
-          lastUpdated: new Date()
-        };
-
-        // Calculate tree level based on leaf count
-        updatedTree.treeLevel = Math.floor(updatedTree.leafCount / 10) + 1;
-
-        await updateDoc(journeyRef, {
-          'resilienceTree': updatedTree
-        });
-      }
-
-      return adventure;
-    }, 'logAdventure');
-  },
-
-  // Get adventures for a skill (Memory Lane)
-  async getAdventures(childId: string, skillId: string): Promise<{ data: Adventure[] | null; error: any }> {
-    return handleAsyncOperation(async () => {
-      const adventuresRef = collection(db, 'users', 'temp', 'children', childId, 'journeys', skillId, 'adventures');
-      const q = query(adventuresRef, orderBy('createdAt', 'desc'));
-      const snapshot = await getDocs(q);
-      
-      const adventures: Adventure[] = [];
-      snapshot.forEach(doc => {
-        const data = doc.data() as Adventure;
-        adventures.push({
-          ...data,
-          id: doc.id,
-          createdAt: timestampToDate(data.createdAt)
-        });
-      });
-
-      return adventures;
-    }, 'getAdventures');
-  },
-
-  // Real-time listeners for Slice 1
-  onJourneysChange(childId: string, callback: (journeys: Journey[]) => void) {
-    const journeysRef = collection(db, 'users', 'temp', 'children', childId, 'journeys');
-    
-    return onSnapshot(journeysRef, (snapshot) => {
-      const journeys: Journey[] = [];
-      snapshot.forEach(doc => {
-        const data = doc.data() as Journey;
-        
-        // Convert timestamps in the nested skillData
-        const skillData = {
-          ...data.skillData,
-          id: doc.id,
-          createdAt: timestampToDate(data.skillData.createdAt)
-        };
-        
-        // Convert timestamps in the resilienceTree
-        const resilienceTree = {
-          ...data.resilienceTree,
-          lastUpdated: timestampToDate(data.resilienceTree.lastUpdated)
-        };
-        
-        journeys.push({
-          skillData,
-          resilienceTree
-        });
-      });
-      
-      callback(journeys.sort((a, b) => b.skillData.createdAt.getTime() - a.skillData.createdAt.getTime()));
-    });
-  },
-
-  onAdventuresChange(childId: string, skillId: string, callback: (adventures: Adventure[]) => void) {
-    const adventuresRef = collection(db, 'users', 'temp', 'children', childId, 'journeys', skillId, 'adventures');
-    const q = query(adventuresRef, orderBy('createdAt', 'desc'));
-    
-    return onSnapshot(q, (snapshot) => {
-      const adventures: Adventure[] = [];
-      snapshot.forEach(doc => {
-        const data = doc.data() as Adventure;
-        adventures.push({
-          ...data,
-          id: doc.id,
-          createdAt: timestampToDate(data.createdAt)
-        });
-      });
-      
-      callback(adventures);
-    });
+      return { data: adventure, error: null };
+    } catch (error) {
+      console.error('Error logging adventure:', error);
+      return { data: null, error: 'Failed to log adventure' };
+    }
   }
 }; 

@@ -14,12 +14,21 @@ module.exports = {
     '!**/__tests__/**',
   ],
   testMatch: [
-    '**/__tests__/**/*.(ts|tsx|js)',
+    '**/__tests__/**/*.(test|spec).(ts|tsx|js)',
     '**/*.(test|spec).(ts|tsx|js)',
+  ],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/__tests__/setup.ts',
+    '/__tests__/__mocks__/',
   ],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
     '\\.svg$': '<rootDir>/__tests__/__mocks__/svgMock.tsx',
   },
   testEnvironment: 'node',
+  setupFilesAfterEnv: [
+    '<rootDir>/__tests__/setup.ts',
+    '<rootDir>/__tests__/testUtils.ts',
+  ],
 }; 

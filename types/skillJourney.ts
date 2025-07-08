@@ -44,6 +44,8 @@ export interface SkillProgress {
   challenges?: string[];
   victories?: string[];
   createdAt: Date;
+  adventureCount: number;
+  lastUpdated: Date;
 }
 
 export type ProgressStatus = 
@@ -218,18 +220,16 @@ export type AdventureWinType =
   | 'kept-going'        // "We kept going!"
   | 'custom';           // Custom positive note
 
-// Resilience Tree data
-export interface ResilienceTree {
-  treeLevel: number;
-  leafCount: number;
-  branchCount: number;
+// Skill Progress data (replaces tree metaphor)
+export interface JourneyProgress {
+  adventureCount: number;
   lastUpdated: Date;
 }
 
-// Journey document (contains skill + adventures + stories)
+// Journey document (contains skill + adventures + progress)
 export interface Journey {
   skillData: SimpleSkill;
-  resilienceTree: ResilienceTree;
+  progress: JourneyProgress;
 }
 
 // Form types for Slice 1

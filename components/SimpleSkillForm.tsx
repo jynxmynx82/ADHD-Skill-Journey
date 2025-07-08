@@ -84,7 +84,7 @@ export const SimpleSkillForm: React.FC<SimpleSkillFormProps> = ({
       setEstimatedDays('');
       setErrors({});
       
-      Alert.alert('Skill Created!', 'Your new skill journey has been created. Start logging adventures to help your tree grow!');
+      Alert.alert('Skill Created!', 'Your new skill journey has been created. Start logging adventures to build your progress!');
     } catch (error) {
       Alert.alert('Error', 'Failed to create skill. Please try again.');
     } finally {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Tabs } from 'expo-router';
-import { Home, Target, PenTool, Menu } from 'lucide-react-native';
+import { Home, Target, PenTool, Menu, Droplets } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { Platform, View, Text, StyleSheet, TouchableOpacity, StatusBar, SafeAreaView } from 'react-native';
 import HamburgerMenu from '@/components/HamburgerMenu';
@@ -122,6 +122,13 @@ export default function MainTabLayout() {
             options={{
               title: 'Skill Journey',
               tabBarIcon: ({ color, size }) => <Target color={color} size={size} />,
+            }}
+          />
+          <Tabs.Screen
+            name="flow"
+            options={{
+              title: 'Flow',
+              tabBarIcon: ({ color, size }) => <Droplets color={color} size={size} />,
             }}
           />
           <Tabs.Screen

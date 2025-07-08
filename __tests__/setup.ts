@@ -62,4 +62,7 @@ jest.mock('expo-constants', () => ({
       firebaseMeasurementId: 'test-measurement',
     },
   },
-})); 
+}));
+
+// Ensure this file is not treated as a test
+export {}; 

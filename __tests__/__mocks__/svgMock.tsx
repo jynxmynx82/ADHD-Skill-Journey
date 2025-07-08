@@ -6,4 +6,7 @@ const SvgMock: React.FC<any> = ({ testID, ...props }) => {
   return <View testID={testID} {...props} />;
 };
 
-export default SvgMock; 
+export default SvgMock;
+
+// Ensure this file is not treated as a test
+export {}; 

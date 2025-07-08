@@ -8,12 +8,12 @@ interface AdventureLoggerProps {
   isLoading?: boolean;
 }
 
-const WIN_TYPE_BUTTONS: { type: AdventureWinType; label: string; emoji: string }[] = [
-  { type: 'tried-best', label: 'We tried our best!', emoji: '🌟' },
-  { type: 'no-frustration', label: 'We didn\'t get frustrated!', emoji: '😌' },
-  { type: 'laughed-about-it', label: 'We laughed about it!', emoji: '😄' },
-  { type: 'made-progress', label: 'We made progress!', emoji: '📈' },
-  { type: 'kept-going', label: 'We kept going!', emoji: '💪' },
+const WIN_TYPE_BUTTONS: { type: AdventureWinType; label: string; emoji: string; childFriendly: string }[] = [
+  { type: 'tried-best', label: 'We tried our best!', emoji: '🌟', childFriendly: 'We gave it our all!' },
+  { type: 'no-frustration', label: 'We didn\'t get frustrated!', emoji: '😌', childFriendly: 'We stayed calm!' },
+  { type: 'laughed-about-it', label: 'We laughed about it!', emoji: '😄', childFriendly: 'We found the fun!' },
+  { type: 'made-progress', label: 'We made progress!', emoji: '📈', childFriendly: 'We got better!' },
+  { type: 'kept-going', label: 'We kept going!', emoji: '💪', childFriendly: 'We didn\'t give up!' },
 ];
 
 export const AdventureLogger: React.FC<AdventureLoggerProps> = ({
@@ -27,7 +27,7 @@ export const AdventureLogger: React.FC<AdventureLoggerProps> = ({
 
   const handleLogAdventure = async () => {
     if (!selectedWinType) {
-      Alert.alert('Select a Win', 'Please select how today\'s adventure went!');
+      Alert.alert('Pick a Win!', 'Tell us what went well today!');
       return;
     }
 
@@ -44,9 +44,9 @@ export const AdventureLogger: React.FC<AdventureLoggerProps> = ({
       setSelectedWinType(null);
       setCustomText('');
       
-      Alert.alert('Adventure Logged!', 'Great job! Your adventure has been added to the Memory Lane.');
+      Alert.alert('Awesome!', 'Your adventure is now part of your story! 🌱');
     } catch (error) {
-      Alert.alert('Error', 'Failed to log adventure. Please try again.');
+      Alert.alert('Oops!', 'Something went wrong. Let\'s try again!');
     } finally {
       setIsSubmitting(false);
     }
@@ -56,10 +56,10 @@ export const AdventureLogger: React.FC<AdventureLoggerProps> = ({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>How did today's "{skillName}" adventure go?</Text>
+      <Text style={styles.header}>How did your "{skillName}" adventure go today?</Text>
       
       {/* Win Type Selection */}
-      <Text style={styles.sectionTitle}>What was the biggest win today?</Text>
+      <Text style={styles.sectionTitle}>What was your biggest win today?</Text>
       <View style={styles.winTypeContainer}>
         {WIN_TYPE_BUTTONS.map((button) => (
           <TouchableOpacity
@@ -76,17 +76,17 @@ export const AdventureLogger: React.FC<AdventureLoggerProps> = ({
               styles.winTypeLabel,
               selectedWinType === button.type && styles.selectedWinTypeLabel
             ]}>
-              {button.label}
+              {button.childFriendly}
             </Text>
           </TouchableOpacity>
         ))}
       </View>
 
       {/* Custom Text Input */}
-      <Text style={styles.sectionTitle}>Add a quick thought about your adventure (optional):</Text>
+      <Text style={styles.sectionTitle}>Want to share more about your adventure? (totally optional!)</Text>
       <TextInput
         style={styles.textInput}
-        placeholder="Tell us about today's adventure... (optional)"
+        placeholder="Tell us about your adventure... (optional)"
         value={customText}
         onChangeText={setCustomText}
         multiline
@@ -103,7 +103,7 @@ export const AdventureLogger: React.FC<AdventureLoggerProps> = ({
         disabled={isSubmitDisabled}
       >
         <Text style={[styles.submitButtonText, isSubmitDisabled && styles.disabledButtonText]}>
-          {isSubmitting ? 'Logging Adventure...' : 'Log Adventure'}
+          {isSubmitting ? 'Adding to Your Story...' : 'Add to My Story!'}
         </Text>
       </TouchableOpacity>
     </View>
