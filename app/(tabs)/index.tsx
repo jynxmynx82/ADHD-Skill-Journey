@@ -5,6 +5,7 @@ import { Settings, Calendar, Search, Heart, PenTool, Users, Clock, BookOpen, Sta
 import { useRouter } from 'expo-router';
 import { loadJournalEntries } from '@/lib/journalStorage';
 import type { RecentActivity } from '@/types/journal';
+import { UpgradePrompt } from '@/components/premium/UpgradePrompt';
 
 export default function Home() {
   const { colors } = useTheme();
@@ -435,86 +436,9 @@ export default function Home() {
               </View>
             </View>
 
-            {/* Getting Started Section */}
+            {/* Premium Upgrade Prompt Section */}
             <View style={styles.section}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Getting Started</Text>
-              <View style={[styles.card, { backgroundColor: colors.background, borderColor: colors.border }]}>
-                <Text style={[styles.cardText, { color: colors.text }]}>
-                  Start your journey with these key features:
-                </Text>
-                <View style={styles.featureList}>
-                  <View style={styles.featureItem}>
-                    <Users size={20} color={colors.primary} />
-                    <Text style={[styles.featureItemText, { color: colors.text }]}>Add your children's profiles</Text>
-                  </View>
-                  <View style={styles.featureItem}>
-                    <Clock size={20} color={colors.primary} />
-                    <Text style={[styles.featureItemText, { color: colors.text }]}>Create daily routines</Text>
-                  </View>
-                  <View style={styles.featureItem}>
-                    <Search size={20} color={colors.primary} />
-                    <Text style={[styles.featureItemText, { color: colors.text }]}>Scan food products</Text>
-                  </View>
-                  <View style={styles.featureItem}>
-                    <BookOpen size={20} color={colors.primary} />
-                    <Text style={[styles.featureItemText, { color: colors.text }]}>Explore resources</Text>
-                  </View>
-                </View>
-              </View>
-            </View>
-
-            {/* Feature Status Section */}
-            <View style={styles.section}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Feature Status</Text>
-              <View style={[styles.card, { backgroundColor: colors.background, borderColor: colors.border }]}>
-                <View style={styles.statusList}>
-                  <View style={styles.statusItem}>
-                    <View style={[styles.statusBadge, { backgroundColor: '#4CAF50' }]}>
-                      <Text style={styles.statusText}>Ready</Text>
-                    </View>
-                    <Text style={[styles.statusItemText, { color: colors.text }]}>Schedule & Routines</Text>
-                  </View>
-                  <View style={styles.statusItem}>
-                    <View style={[styles.statusBadge, { backgroundColor: '#4CAF50' }]}>
-                      <Text style={styles.statusText}>Ready</Text>
-                    </View>
-                    <Text style={[styles.statusItemText, { color: colors.text }]}>Resources</Text>
-                  </View>
-                  <View style={styles.statusItem}>
-                    <View style={[styles.statusBadge, { backgroundColor: '#FFA000' }]}>
-                      <Text style={styles.statusText}>Beta</Text>
-                    </View>
-                    <Text style={[styles.statusItemText, { color: colors.text }]}>Food Scanner</Text>
-                  </View>
-                  <View style={styles.statusItem}>
-                    <View style={[styles.statusBadge, { backgroundColor: '#4CAF50' }]}>
-                      <Text style={styles.statusText}>Ready</Text>
-                    </View>
-                    <Text style={[styles.statusItemText, { color: colors.text }]}>Journal</Text>
-                  </View>
-                </View>
-              </View>
-            </View>
-
-            {/* Coming Soon Section */}
-            <View style={styles.section}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Coming Soon</Text>
-              <View style={[styles.card, { backgroundColor: colors.background, borderColor: colors.border }]}>
-                <View style={styles.comingSoonList}>
-                  <View style={styles.comingSoonItem}>
-                    <Star size={20} color={colors.textSecondary} />
-                    <Text style={[styles.comingSoonText, { color: colors.text }]}>Progress tracking and analytics</Text>
-                  </View>
-                  <View style={styles.comingSoonItem}>
-                    <MessageSquare size={20} color={colors.textSecondary} />
-                    <Text style={[styles.comingSoonText, { color: colors.text }]}>Family communication tools</Text>
-                  </View>
-                  <View style={styles.comingSoonItem}>
-                    <AlertCircle size={20} color={colors.textSecondary} />
-                    <Text style={[styles.comingSoonText, { color: colors.text }]}>Emergency support resources</Text>
-                  </View>
-                </View>
-              </View>
+                <UpgradePrompt />
             </View>
 
             {/* Feedback Section */}

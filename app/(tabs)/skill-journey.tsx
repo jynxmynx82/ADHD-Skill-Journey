@@ -18,7 +18,9 @@ import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';
 import { useFamily } from '@/context/FamilyContext';
 import { slice1Service } from '@/lib/skillJourneyService';
-import { Journey, Adventure, CreateSimpleSkillForm, CreateAdventureForm } from '@/types/skillJourney';
+import { Journey, Adventure, CreateSimpleSkillForm, CreateAdventureForm, AIStory } from '@/types/skillJourney';
+import { aiStoryService } from '@/lib/aiStoryService';
+import { PremiumFeatureGate } from '@/components/premium/PremiumFeatureGate';
 
 import AdventureLogger from '@/components/AdventureLogger';
 import MemoryLane from '@/components/MemoryLane';
@@ -378,7 +380,7 @@ export default function SkillJourneyScreen() {
 
                 {/* Memory Lane */}
                 <View style={styles.memoryLaneSection}>
-                  <MemoryLane adventures={adventures} isLoading={loading} />
+                  <MemoryLane adventures={adventures} journey={selectedJourney} isLoading={loading} />
                 </View>
               </>
             )}
@@ -581,6 +583,23 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   quickLogText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  storyButton: {
+    marginTop: 12,
+    padding: 16,
+    borderRadius: 12,
+    minWidth: 200,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  storyButtonDisabled: {
+    backgroundColor: '#BDBDBD',
+  },
+  storyButtonText: {
     fontSize: 16,
     fontWeight: '600',
   },

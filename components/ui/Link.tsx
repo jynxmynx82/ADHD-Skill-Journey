@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text, StyleSheet, StyleProp, TextStyle, Platform, TouchableOpacity, View } from 'react-native';
 import { Link as ExpoLink, Href } from 'expo-router';
-import { useTheme } from '@/context/ThemeContext';
+import { useAppTheme } from '@/lib/theme';
 
 interface LinkProps {
   href: Href<string>;
@@ -10,7 +10,7 @@ interface LinkProps {
   onPress?: () => void;
 }
 
-const WebLink = ({ children, style, onPress }: { children: React.ReactNode; style?: StyleProp<TextStyle>; onPress?: () => void }) => {
+const WebLink = ({ children, onPress }: { children: React.ReactNode; onPress?: () => void }) => {
   return (
     <View style={styles.container} onTouchEnd={onPress}>
       {children}
@@ -19,10 +19,17 @@ const WebLink = ({ children, style, onPress }: { children: React.ReactNode; styl
 };
 
 export const Link = ({ href, children, style, onPress }: LinkProps) => {
-  const { colors } = useTheme();
+  const { colors, fontSizes } = useAppTheme();
+
+  const linkStyles = StyleSheet.create({
+    text: {
+      fontSize: fontSizes.md,
+      color: colors.primary,
+    },
+  });
 
   const content = typeof children === 'string' ? (
-    <Text style={[styles.text, { color: colors.primary }, style]}>
+    <Text style={[linkStyles.text, style]}>
       {children}
     </Text>
   ) : (
@@ -49,12 +56,9 @@ export const Link = ({ href, children, style, onPress }: LinkProps) => {
 };
 
 const styles = StyleSheet.create({
-  text: {
-    fontSize: 16,
-  },
   container: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
   },
-}); 
+});

@@ -174,7 +174,7 @@ export const slice1Service = {
         skillId,
         text: adventureData.text,
         winType: adventureData.winType,
-        photoUrl: adventureData.photoUrl,
+        photoUrl: adventureData.photoUrl ?? null,
         createdAt: serverTimestamp()
       };
       
@@ -213,7 +213,7 @@ export const slice1Service = {
         id: adventureRef.id,
         text: adventureData.text,
         winType: adventureData.winType,
-        photoUrl: adventureData.photoUrl,
+        photoUrl: adventureData.photoUrl ?? null,
         createdAt: new Date()
       };
       

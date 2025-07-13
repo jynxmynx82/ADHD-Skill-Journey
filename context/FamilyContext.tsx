@@ -22,6 +22,7 @@ export interface Child {
   diagnosis: string;
   strengths: string[];
   challenges: string[];
+  interests: string[];
   medications?: string;
   allergies?: string;
   profileImage?: string;
@@ -102,6 +103,7 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
         diagnosis: childData.diagnosis,
         strengths: childData.strengths || [],
         challenges: childData.challenges || [],
+        interests: childData.interests || [],
         familyId: `family_${user.uid}`,
         createdAt: new Date(),
         updatedAt: new Date(),

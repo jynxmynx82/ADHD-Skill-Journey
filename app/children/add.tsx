@@ -19,6 +19,7 @@ const AddChildSchema = Yup.object().shape({
   diagnosis: Yup.string().required("Please enter your child's diagnosis"),
   keyStrengths: Yup.string().required("Please describe your child's strengths"),
   keyChallenges: Yup.string().required("Please describe your child's challenges"),
+  interests: Yup.string(),
   medications: Yup.string(),
   allergies: Yup.string(),
 });
@@ -43,7 +44,7 @@ export default function AddChildScreen() {
     );
   }
 
-  const initialValues = { name: '', age: '', diagnosis: '', keyStrengths: '', keyChallenges: '', medications: '', allergies: '' };
+  const initialValues = { name: '', age: '', diagnosis: '', keyStrengths: '', keyChallenges: '', interests: '', medications: '', allergies: '' };
 
   const handleSubmit = async (values: typeof initialValues, { setSubmitting, setFieldError }: any) => {
     console.log('🚀 Starting form submission...', { values, user: user?.uid });
@@ -87,6 +88,7 @@ export default function AddChildScreen() {
         diagnosis: values.diagnosis.trim(),
         strengths: values.keyStrengths.split(',').map(s => s.trim()).filter(s => s.length > 0),
         challenges: values.keyChallenges.split(',').map(c => c.trim()).filter(c => c.length > 0),
+        interests: values.interests.split(',').map(i => i.trim()).filter(i => i.length > 0),
       };
 
       // Only add optional fields if they have content
@@ -314,6 +316,7 @@ export default function AddChildScreen() {
                     <Input label="Diagnosis" placeholder="e.g., ADHD - Combined Type, Autism Spectrum Disorder" onChangeText={handleChange('diagnosis')} onBlur={handleBlur('diagnosis')} value={values.diagnosis} error={errors.diagnosis} touched={touched.diagnosis} />
                     <Input label="Key Strengths" placeholder="What are your child's strengths? (e.g., creative, energetic, kind)" onChangeText={handleChange('keyStrengths')} onBlur={handleBlur('keyStrengths')} value={values.keyStrengths} error={errors.keyStrengths} touched={touched.keyStrengths} multiline numberOfLines={3} />
                     <Input label="Key Challenges" placeholder="What challenges does your child face? (e.g., focus, transitions, social skills)" onChangeText={handleChange('keyChallenges')} onBlur={handleBlur('keyChallenges')} value={values.keyChallenges} error={errors.keyChallenges} touched={touched.keyChallenges} multiline numberOfLines={3} />
+                    <Input label="Interests (Optional)" placeholder="What does your child love? (e.g., dinosaurs, space, art)" onChangeText={handleChange('interests')} onBlur={handleBlur('interests')} value={values.interests} error={errors.interests} touched={touched.interests} multiline numberOfLines={2} />
                     <Input label="Medications (Optional)" placeholder="Any medications your child takes (no dosages needed)" onChangeText={handleChange('medications')} onBlur={handleBlur('medications')} value={values.medications} error={errors.medications} touched={touched.medications} multiline numberOfLines={2} />
                     <Input label="Allergies/Dietary Restrictions (Optional)" placeholder="e.g., peanuts, gluten-free, dairy" onChangeText={handleChange('allergies')} onBlur={handleBlur('allergies')} value={values.allergies} error={errors.allergies} touched={touched.allergies} multiline numberOfLines={2} />
                     <View style={styles.buttonContainer}><Button title={isSubmitting ? "Adding Child..." : "Add Child to Family"} onPress={() => handleSubmit()} loading={isSubmitting} disabled={isSubmitting || !isValid} fullWidth size="lg" /></View>
@@ -354,6 +357,7 @@ export default function AddChildScreen() {
                       <Input label="Diagnosis" placeholder="e.g., ADHD - Combined Type, Autism Spectrum Disorder" onChangeText={handleChange('diagnosis')} onBlur={handleBlur('diagnosis')} value={values.diagnosis} error={errors.diagnosis} touched={touched.diagnosis} />
                       <Input label="Key Strengths" placeholder="What are your child's strengths? (e.g., creative, energetic, kind)" onChangeText={handleChange('keyStrengths')} onBlur={handleBlur('keyStrengths')} value={values.keyStrengths} error={errors.keyStrengths} touched={touched.keyStrengths} multiline numberOfLines={3} />
                       <Input label="Key Challenges" placeholder="What challenges does your child face? (e.g., focus, transitions, social skills)" onChangeText={handleChange('keyChallenges')} onBlur={handleBlur('keyChallenges')} value={values.keyChallenges} error={errors.keyChallenges} touched={touched.keyChallenges} multiline numberOfLines={3} />
+                    <Input label="Interests (Optional)" placeholder="What does your child love? (e.g., dinosaurs, space, art)" onChangeText={handleChange('interests')} onBlur={handleBlur('interests')} value={values.interests} error={errors.interests} touched={touched.interests} multiline numberOfLines={2} />
                       <Input label="Medications (Optional)" placeholder="Any medications your child takes (no dosages needed)" onChangeText={handleChange('medications')} onBlur={handleBlur('medications')} value={values.medications} error={errors.medications} touched={touched.medications} multiline numberOfLines={2} />
                       <Input label="Allergies/Dietary Restrictions (Optional)" placeholder="e.g., peanuts, gluten-free, dairy" onChangeText={handleChange('allergies')} onBlur={handleBlur('allergies')} value={values.allergies} error={errors.allergies} touched={touched.allergies} multiline numberOfLines={2} />
                       <View style={styles.buttonContainer}><Button title={isSubmitting ? "Adding Child..." : "Add Child to Family"} onPress={() => handleSubmit()} loading={isSubmitting} disabled={isSubmitting || !isValid} fullWidth size="lg" /></View>

@@ -1,15 +1,14 @@
-
-import { 
-  StyleSheet, 
-  Text, 
-  TouchableOpacity, 
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
   ActivityIndicator,
   View,
   StyleProp,
   TextStyle,
-  ViewStyle
+  ViewStyle,
 } from 'react-native';
-import { theme } from '@/constants/theme';
+import { useAppTheme } from '@/lib/theme'; // Import the new hook
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'link' | 'danger';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -41,29 +40,91 @@ export const Button = ({
   textStyle,
   fullWidth = false,
 }: ButtonProps) => {
-  
+  const { colors, fontWeights, fontSizes, borderRadius, spacing } = useAppTheme();
+
+  const styles = StyleSheet.create({
+    button: {
+      borderRadius: borderRadius.md,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    fullWidth: {
+      width: '100%',
+    },
+    contentContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    iconLeft: {
+      marginRight: spacing[2],
+    },
+    iconRight: {
+      marginLeft: spacing[2],
+    },
+    sm: {
+      paddingVertical: spacing[2],
+      paddingHorizontal: spacing[4],
+    },
+    md: {
+      paddingVertical: spacing[3],
+      paddingHorizontal: spacing[5],
+    },
+    lg: {
+      paddingVertical: spacing[4],
+      paddingHorizontal: spacing[6],
+    },
+    smText: {
+      fontSize: fontSizes.sm,
+    },
+    mdText: {
+      fontSize: fontSizes.md,
+    },
+    lgText: {
+      fontSize: fontSizes.lg,
+    },
+    text: {
+      fontFamily: 'Inter-SemiBold', // Assuming this font is loaded
+      textAlign: 'center',
+    },
+    // Variant styles using the new theme hook
+    primary: { backgroundColor: colors.primary },
+    primaryText: { color: colors.background },
+    primaryDisabled: { backgroundColor: colors.primary, opacity: 0.5 },
+    secondary: { backgroundColor: colors.secondary },
+    secondaryText: { color: colors.background },
+    secondaryDisabled: { backgroundColor: colors.secondary, opacity: 0.5 },
+    outline: { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.primary },
+    outlineText: { color: colors.primary },
+    outlineDisabled: { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.border },
+    ghost: { backgroundColor: 'transparent' },
+    ghostText: { color: colors.primary },
+    ghostDisabled: { backgroundColor: 'transparent' },
+    link: { backgroundColor: 'transparent', paddingVertical: 0, paddingHorizontal: 0 },
+    linkText: { color: colors.primary, textDecorationLine: 'underline' },
+    linkDisabled: { backgroundColor: 'transparent' },
+    danger: { backgroundColor: colors.error },
+    dangerText: { color: colors.background },
+    dangerDisabled: { backgroundColor: colors.error, opacity: 0.5 },
+    // Disabled text styles
+    disabledText: { color: colors.textSecondary },
+  });
+
   const getButtonStyles = () => {
     const baseStyle = [styles.button, styles[size], fullWidth && styles.fullWidth];
-    
-    if (disabled) {
-      return StyleSheet.flatten([...baseStyle, styles[`${variant}Disabled`]]);
-    }
-    
-    return StyleSheet.flatten([...baseStyle, styles[variant]]);
+    return StyleSheet.flatten([...baseStyle, styles[variant], (disabled || loading) && styles[`${variant}Disabled`]]);
   };
-  
+
   const getTextStyles = () => {
     const baseStyle = [styles.text, styles[`${size}Text`]];
-    
-    if (disabled) {
-      return StyleSheet.flatten([...baseStyle, styles[`${variant}DisabledText`]]);
-    }
-    
-    return StyleSheet.flatten([...baseStyle, styles[`${variant}Text`]]);
+    const variantTextStyle = styles[`${variant}Text` as keyof typeof styles] || {};
+    const disabledTextStyle = disabled ? styles.disabledText : {};
+    return StyleSheet.flatten([baseStyle, variantTextStyle, disabledTextStyle]);
   };
 
   const flattenedStyle = style ? StyleSheet.flatten([getButtonStyles(), style]) : getButtonStyles();
   const flattenedTextStyle = textStyle ? StyleSheet.flatten([getTextStyles(), textStyle]) : getTextStyles();
+  const activityIndicatorColor = (styles[`${variant}Text` as keyof typeof styles] as TextStyle)?.color || colors.text;
 
   return (
     <TouchableOpacity
@@ -73,7 +134,7 @@ export const Button = ({
       activeOpacity={0.8}
     >
       {loading ? (
-        <ActivityIndicator color={styles[`${variant}Text`].color} />
+        <ActivityIndicator color={activityIndicatorColor} />
       ) : (
         <View style={styles.contentContainer}>
           {icon && iconPosition === 'left' && <View style={styles.iconLeft}>{icon}</View>}
@@ -84,136 +145,3 @@ export const Button = ({
     </TouchableOpacity>
   );
 };
-
-const styles = StyleSheet.create({
-  button: {
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  fullWidth: {
-    width: '100%',
-  },
-  contentContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconLeft: {
-    marginRight: 8,
-  },
-  iconRight: {
-    marginLeft: 8,
-  },
-  sm: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-  },
-  md: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-  },
-  lg: {
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-  },
-  smText: {
-    fontSize: 14,
-  },
-  mdText: {
-    fontSize: 16,
-  },
-  lgText: {
-    fontSize: 18,
-  },
-  text: {
-    fontFamily: 'Inter-SemiBold',
-    textAlign: 'center',
-  },
-  // Primary Button
-  primary: {
-    backgroundColor: theme.colors.primary[600],
-  },
-  primaryText: {
-    color: theme.colors.white,
-  },
-  primaryDisabled: {
-    backgroundColor: theme.colors.primary[300],
-  },
-  primaryDisabledText: {
-    color: theme.colors.white,
-  },
-  // Secondary Button
-  secondary: {
-    backgroundColor: theme.colors.secondary[600],
-  },
-  secondaryText: {
-    color: theme.colors.white,
-  },
-  secondaryDisabled: {
-    backgroundColor: theme.colors.secondary[300],
-  },
-  secondaryDisabledText: {
-    color: theme.colors.white,
-  },
-  // Outline Button
-  outline: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: theme.colors.primary[600],
-  },
-  outlineText: {
-    color: theme.colors.primary[600],
-  },
-  outlineDisabled: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: theme.colors.gray[300],
-  },
-  outlineDisabledText: {
-    color: theme.colors.gray[400],
-  },
-  // Ghost Button
-  ghost: {
-    backgroundColor: 'transparent',
-  },
-  ghostText: {
-    color: theme.colors.primary[600],
-  },
-  ghostDisabled: {
-    backgroundColor: 'transparent',
-  },
-  ghostDisabledText: {
-    color: theme.colors.gray[400],
-  },
-  // Link Button
-  link: {
-    backgroundColor: 'transparent',
-    paddingVertical: 0,
-    paddingHorizontal: 0,
-  },
-  linkText: {
-    color: theme.colors.primary[600],
-    textDecorationLine: 'underline',
-  },
-  linkDisabled: {
-    backgroundColor: 'transparent',
-  },
-  linkDisabledText: {
-    color: theme.colors.gray[400],
-    textDecorationLine: 'underline',
-  },
-  // Danger Button
-  danger: {
-    backgroundColor: theme.colors.error[600],
-  },
-  dangerText: {
-    color: theme.colors.white,
-  },
-  dangerDisabled: {
-    backgroundColor: theme.colors.error[300],
-  },
-  dangerDisabledText: {
-    color: theme.colors.white,
-  },
-});

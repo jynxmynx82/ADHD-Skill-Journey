@@ -1,11 +1,17 @@
-import React from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
-import { Adventure, AdventureWinType } from '@/types/skillJourney';
+import React, { useState } from 'react';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { Adventure, AdventureWinType, Journey } from '@/types/skillJourney';
+import { Sparkles } from 'lucide-react-native';
+import { PremiumFeatureGate } from '@/components/premium/PremiumFeatureGate';
+import { aiStoryService } from '@/lib/aiStoryService';
+import { useTheme } from '@/context/ThemeContext';
 
 interface MemoryLaneProps {
   adventures: Adventure[];
+  journey: Journey | null; // Pass the whole journey object
   isLoading?: boolean;
 }
+
 
 const WIN_TYPE_EMOJIS: Record<AdventureWinType, string> = {
   'tried-best': '🌟',
@@ -81,8 +87,27 @@ const AdventureItem: React.FC<{ adventure: Adventure; index: number }> = ({ adve
 
 export const MemoryLane: React.FC<MemoryLaneProps> = ({ 
   adventures, 
+  journey,
   isLoading = false 
 }) => {
+  const { colors } = useTheme();
+  const [isGeneratingStory, setIsGeneratingStory] = useState(false);
+
+  const handleGenerateStory = async () => {
+    if (!journey) return;
+
+    setIsGeneratingStory(true);
+    try {
+      const story = await aiStoryService.generateStory(journey);
+      Alert.alert(story.title, story.content);
+    } catch (error) {
+      console.error("Error generating story:", error);
+      Alert.alert("Error", "Could not generate the story. Please try again.");
+    } finally {
+      setIsGeneratingStory(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -90,6 +115,7 @@ export const MemoryLane: React.FC<MemoryLaneProps> = ({
       </View>
     );
   }
+
 
   if (adventures.length === 0) {
     return (
@@ -112,6 +138,26 @@ export const MemoryLane: React.FC<MemoryLaneProps> = ({
       <Text style={styles.subtitle}>
         {adventures.length} adventure{adventures.length !== 1 ? 's' : ''} in your story
       </Text>
+
+      {/* AI Story Generation Button */}
+      <PremiumFeatureGate feature="ai_story_generation">
+        <View style={styles.storyButtonContainer}>
+          <TouchableOpacity
+            style={[
+              styles.storyButton,
+              (adventures.length < 3 || isGeneratingStory) && styles.storyButtonDisabled,
+              { backgroundColor: '#14B8A6' } // Use theme.colors.secondary[500]
+            ]}
+            onPress={handleGenerateStory}
+            disabled={adventures.length < 3 || isGeneratingStory}
+          >
+            <Sparkles size={20} color={colors.background} />
+            <Text style={[styles.storyButtonText, { color: colors.background }]}>
+              {isGeneratingStory ? 'Creating Story...' : 'Create Adventure Story'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </PremiumFeatureGate>
       
       <View style={styles.listContainer}>
         {adventures.map((adventure, index) => (
@@ -232,6 +278,26 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     textAlign: 'center',
+  },
+  storyButtonContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  storyButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 30,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  storyButtonDisabled: {
+    backgroundColor: '#BDBDBD',
+  },
+  storyButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 
