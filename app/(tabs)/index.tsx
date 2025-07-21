@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Image, Platform, Dimensions } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
-import { Settings, Calendar, Search, Heart, PenTool, Users, Clock, BookOpen, Star, MessageSquare, AlertCircle, Mic } from 'lucide-react-native';
+import { Settings, Calendar, Search, Heart, PenTool, Users, Clock, BookOpen, Star, AlertCircle, Mic } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { loadJournalEntries } from '@/lib/journalStorage';
 import type { RecentActivity } from '@/types/journal';
-import { UpgradePrompt } from '@/components/premium/UpgradePrompt';
 
 export default function Home() {
   const { colors } = useTheme();
@@ -218,20 +217,7 @@ export default function Home() {
     comingSoonText: {
       fontSize: 16,
     },
-    feedbackButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: 16,
-      borderRadius: 12,
-      marginTop: 16,
-      gap: 8,
-    },
-    feedbackButtonText: {
-      color: '#FFFFFF',
-      fontSize: 16,
-      fontWeight: '600',
-    },
+
     activityList: {
       gap: 12,
     },
@@ -436,25 +422,19 @@ export default function Home() {
               </View>
             </View>
 
-            {/* Premium Upgrade Prompt Section */}
+            {/* Progress Overview Section */}
             <View style={styles.section}>
-                <UpgradePrompt />
-            </View>
-
-            {/* Feedback Section */}
-            <View style={styles.section}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Help Us Improve</Text>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Your Progress</Text>
               <View style={[styles.card, { backgroundColor: colors.background, borderColor: colors.border }]}>
                 <Text style={[styles.cardText, { color: colors.text }]}>
-                  We're actively developing new features and improvements. Your feedback helps us build a better app for families.
+                  Track your family's journey and celebrate achievements together.
                 </Text>
-                <TouchableOpacity 
-                  style={[styles.feedbackButton, { backgroundColor: colors.primary }]}
-                  onPress={() => router.push('/(settings)/support' as any)}
-                >
-                  <MessageSquare size={20} color="#FFFFFF" />
-                  <Text style={styles.feedbackButtonText}>Share Your Feedback</Text>
-                </TouchableOpacity>
+                <View style={styles.featureList}>
+                  <Text style={[styles.featureItem, { color: colors.text }]}>• Monitor skill development progress</Text>
+                  <Text style={[styles.featureItem, { color: colors.text }]}>• Celebrate daily achievements</Text>
+                  <Text style={[styles.featureItem, { color: colors.text }]}>• Build resilience through practice</Text>
+                  <Text style={[styles.featureItem, { color: colors.text }]}>• Create lasting positive memories</Text>
+                </View>
               </View>
             </View>
           </ScrollView>

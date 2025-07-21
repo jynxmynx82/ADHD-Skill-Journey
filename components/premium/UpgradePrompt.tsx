@@ -69,14 +69,14 @@ export const UpgradePrompt: React.FC<UpgradePromptProps> = ({ feature }) => {
       <View style={styles.iconContainer}>
         <Sparkles size={32} color={colors.primary} />
       </View>
-      <Text style={styles.title}>Unlock Premium Superpowers</Text>
+      <Text style={styles.title}>Support Our Mission</Text>
       <Text style={styles.description}>
         {feature
-          ? `Upgrade to access "${feature}" and other powerful tools to support your family's journey.`
-          : 'Upgrade to unlock all premium features and get the most out of the app.'}
+          ? `Become a supporter to access "${feature}" and other powerful tools to support your family's journey.`
+          : 'Become a supporter to unlock powerful tools and help us continue building features for families.'}
       </Text>
       <TouchableOpacity style={styles.upgradeButton} onPress={handleUpgrade}>
-        <Text style={styles.buttonText}>Upgrade Now</Text>
+        <Text style={styles.buttonText}>Become a Supporter</Text>
       </TouchableOpacity>
     </View>
   );

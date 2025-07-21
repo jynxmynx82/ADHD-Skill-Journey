@@ -113,36 +113,37 @@ export default function SubscribeScreen() {
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <ArrowLeft size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Unlock Premium</Text>
+        <Text style={styles.headerTitle}>Become a Supporter</Text>
       </View>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.titleContainer}>
           <Star size={48} color={colors.primary} style={styles.starIcon} />
-          <Text style={styles.title}>Get Your Superpowers</Text>
+          <Text style={styles.title}>Support Our Mission</Text>
           <Text style={styles.subtitle}>
-            Upgrade to the Premium Plan to unlock exclusive features and support your family's journey.
+            Help us continue building tools that support families with ADHD. 
+            Your support enables us to develop new features and keep the core app free for everyone.
           </Text>
         </View>
 
         <View style={styles.featuresCard}>
-          <Text style={styles.cardTitle}>Premium Features Include:</Text>
-          <PremiumFeature text="AI-Generated Adventure Stories" />
+          <Text style={styles.cardTitle}>Supporter Features Include:</Text>
+          <PremiumFeature text="Unlimited AI Adventure Stories" />
           <PremiumFeature text="Advanced PDF Progress Reports" />
           <PremiumFeature text="Full Access to Expert Resources" />
-          <PremiumFeature text="Secure Cloud Backup & Sync" />
           <PremiumFeature text="Family & Therapist Sharing" />
+          <PremiumFeature text="Advanced Journaling with Audio & Photos" />
         </View>
       </ScrollView>
       <View style={styles.footer}>
         <Button
-          title="Upgrade Now (Coming Soon)"
+          title="Become a Supporter (Coming Soon)"
           onPress={() => {}}
           disabled={true}
           fullWidth
           size="lg"
         />
         <Text style={styles.disclaimer}>
-          Payment processing is not yet implemented. This is a placeholder screen.
+          Payment processing coming soon. This is a placeholder screen.
         </Text>
       </View>
     </SafeAreaView>
