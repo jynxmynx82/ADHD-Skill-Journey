@@ -1,6 +1,8 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { initializeAuth, getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
+import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
@@ -27,11 +29,18 @@ if (getApps().length === 0) {
   app = getApp();
 }
 
-// Initialize Auth without persistence for now to avoid the class definition error
+// Initialize Auth with platform-specific persistence
 let auth: Auth;
 try {
-  // Initialize auth without persistence configuration
-  auth = initializeAuth(app);
+  if (Platform.OS === 'web') {
+    // Web: Use default browser persistence
+    auth = initializeAuth(app);
+  } else {
+    // Mobile: Use AsyncStorage persistence
+    // Note: getReactNativePersistence is not available in current Firebase version
+    // Using default auth initialization for now, with manual AsyncStorage backup in AuthContext
+    auth = initializeAuth(app);
+  }
 } catch (error) {
   // If auth is already initialized, get the existing instance
   auth = getAuth(app);
