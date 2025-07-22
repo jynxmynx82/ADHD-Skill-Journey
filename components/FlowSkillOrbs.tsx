@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { useFamily } from '@/context/FamilyContext';
+import { useAuth } from '@/context/AuthContext';
 import { slice1Service } from '@/lib/skillJourneyService';
 import { Journey } from '@/types/skillJourney';
 
@@ -15,6 +16,7 @@ interface FlowSkillOrbsProps {
 export default function FlowSkillOrbs({ onSkillSelect, selectedSkill }: FlowSkillOrbsProps) {
   const { colors } = useTheme();
   const { selectedChildId } = useFamily();
+  const { user } = useAuth();
   const [journeys, setJourneys] = useState<Journey[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -32,7 +34,12 @@ export default function FlowSkillOrbs({ onSkillSelect, selectedSkill }: FlowSkil
 
       try {
         setLoading(true);
-        const result = await slice1Service.getJourneys(selectedChildId);
+        if (!user?.uid) {
+          console.log('FlowSkillOrbs: No user, setting empty journeys');
+          setJourneys([]);
+          return;
+        }
+        const result = await slice1Service.getJourneys(selectedChildId, user.uid);
         console.log('FlowSkillOrbs: API result:', result);
         
         if (result && result.data) {

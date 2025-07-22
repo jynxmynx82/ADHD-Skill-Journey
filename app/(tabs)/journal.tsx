@@ -75,7 +75,7 @@ export default function JournalScreen() {
   useEffect(() => {
     // This effect runs once to load initial data and check permissions
     setIsLoading(false); // For now, we just set loading to false
-    micPermission?.getAsync(); // Check initial permission status
+    // micPermission is already handled by the usePermissions hook
   }, []);
   
   const handleContentChange = useCallback((text: string) => {

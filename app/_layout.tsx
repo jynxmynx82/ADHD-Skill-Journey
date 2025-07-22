@@ -63,12 +63,13 @@ function RootNavigation() {
 
     const inAuthGroup = segments[0] === '(auth)';
     const inTabsGroup = segments[0] === '(tabs)';
+    const isQuestionnaireStep = segments.includes('signup-with-questions');
 
     if (!user && !inAuthGroup) {
       // Not signed in, redirect to auth
       router.replace('/(auth)');
-    } else if (user && inAuthGroup) {
-      // Signed in, redirect to main app
+    } else if (user && inAuthGroup && !isQuestionnaireStep) {
+      // Signed in and in auth group but not in questionnaire step, redirect to main app
       router.replace('/(tabs)');
     }
   }, [user, loading, segments]);

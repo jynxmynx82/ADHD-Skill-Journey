@@ -203,7 +203,7 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
               />
               <MenuItem 
                 icon={CreditCard} 
-                title="Subscription" 
+                title="Become a supporter" 
                 onPress={() => handleMenuItemPress('/(settings)/subscription')}
               />
             </MenuSection>

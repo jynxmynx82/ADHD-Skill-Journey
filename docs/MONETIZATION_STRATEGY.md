@@ -22,8 +22,9 @@ The free version of the app is our commitment to the community. It includes ever
 -   **✅ The ADHD-Focused Food Scanner:** Our unique, custom-built food score that analyzes additives relevant to ADHD is **free for everyone**. This is a powerful tool we want all families to have.
 -   **✅ Essential Tools Included:**
     -   **Basic Scheduling:** Create and manage daily schedules.
-    -   **Basic Journaling:** Write unlimited plain text journal entries.
-    -   **Basic Resources:** Access a curated selection of introductory articles.
+    -   **Daily Journaling:** Unlimited text and voice journal entries for daily reflection and tracking.
+    -   **Curated Resource Library:** Access to a growing collection of ADHD-focused articles and resources available to all users.
+    -   **AI Quick Advice:** 3 sessions per month for immediate guidance during challenging moments.
 
 ## ⭐ The Supporter Tier: Help Us Grow
 
@@ -33,8 +34,9 @@ For families who find value in the app and want to support our mission, we offer
 -   **📈 Advanced PDF Reports**: A professional tool to help you advocate for your child in meetings with schools and therapists.
 -   **🤝 Family & Therapist Sharing**: Securely collaborate with your support network.
 -   **🗓️ Advanced Scheduling**: Unlock **Routine Templates** and **Multi-Child Views** for ultimate convenience.
--   **📓 Advanced Journaling**: Enhance your journal with **Audio Notes** and **Photo Attachments**.
--   **📚 Full Expert Resource Library**: Get complete access to our constantly growing library of in-depth guides and expert interviews.
+-   **📓 Journal Export & Analysis**: Export your journal entries as PDF or DOC files for days, weeks, or months. Perfect for sharing with therapists, teachers, or keeping organized records.
+-   **📚 Personalized Resource Recommendations**: Get AI-curated content recommendations based on your child's specific challenges, strengths, and journey history. This helps parents focus on resources most relevant to their unique situation.
+-   **🎤 AI Quick Advice**: Get immediate, personalized guidance for challenging moments. Speak into your device and receive contextual advice based on your child's profile and situation. Perfect for crisis moments when you need support right now.
 -   **🥗 Food Scanner History & Trends**: Track your family's nutrition over time with unlimited scan history and trend analysis.
 
 ## 💬 How We Talk About It

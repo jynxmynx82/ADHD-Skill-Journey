@@ -11,9 +11,10 @@ import {
 } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Bell, Calendar, Clock, MessageSquare, AlertCircle } from 'lucide-react-native';
+import { Bell, Calendar, Clock, MessageSquare, AlertCircle } from 'lucide-react-native';
 import { WebGradientWrapper } from '@/components/WebGradientWrapper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Header } from '@/components/ui/Header';
 
 interface NotificationSettingProps {
   icon: React.ElementType;
@@ -107,15 +108,7 @@ export default function NotificationsScreen() {
   return (
     <WebGradientWrapper>
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-          >
-            <ArrowLeft size={24} color={colors.text} />
-          </TouchableOpacity>
-          <Text style={[styles.title, { color: colors.text }]}>Notifications</Text>
-        </View>
+        <Header title="Notifications" showBackButton />
 
         <ScrollView style={styles.content}>
           <View style={styles.section}>
@@ -165,20 +158,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    paddingTop: Platform.OS === 'web' ? 16 : 8,
-  },
-  backButton: {
-    padding: 8,
-    marginRight: 8,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
+
   content: {
     flex: 1,
   },

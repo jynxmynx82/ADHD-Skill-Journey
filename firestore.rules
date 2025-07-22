@@ -3,17 +3,166 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // This rule allows anyone with your Firestore database reference to view, edit,
-    // and delete all data in your Firestore database. It is useful for getting
-    // started, but it is configured to expire after 30 days because it
-    // leaves your app open to attackers. At that time, all client
-    // requests to your Firestore database will be denied.
-    //
-    // Make sure to write security rules for your app before that time, or else
-    // all client requests to your Firestore database will be denied until you Update
-    // your rules
-    match /{document=**} {
-      allow read, write: if request.time < timestamp.date(2025, 7, 26);
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function getUserFamilyId() {
+      return 'family_' + request.auth.uid;
+    }
+
+    function isChildInUserFamily(childId) {
+      return exists(/databases/$(database)/documents/children/$(childId)) &&
+             get(/databases/$(database)/documents/children/$(childId)).data.familyId == getUserFamilyId();
+    }
+
+    // For document creation, allow if the familyId matches the user's family
+    function canCreateInFamily(familyId) {
+      return getUserFamilyId() == familyId;
+    }
+
+    // NEW: Check if user is a family member
+    function isFamilyMember(familyId) {
+      return exists(/databases/$(database)/documents/family_members/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/family_members/$(request.auth.uid)).data.familyId == familyId;
+    }
+
+    // NEW: Check if user can access family data (either owner or member)
+    function canAccessFamily(familyId) {
+      return getUserFamilyId() == familyId || isFamilyMember(familyId);
+    }
+
+    // Users - USER-LEVEL (not family-level)
+    match /users/{userId} {
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Children - FAMILY-LEVEL
+    match /children/{childId} {
+      allow read: if isAuthenticated() && 
+        canAccessFamily(resource.data.familyId);
+      allow create: if isAuthenticated() && 
+        canCreateInFamily(request.resource.data.familyId);
+      allow update, delete: if isAuthenticated() && 
+        canCreateInFamily(request.resource.data.familyId) &&
+        isChildInUserFamily(childId);
+    }
+
+    // Journeys - fast reads with familyId, secure writes with child validation
+    match /journeys/{journeyId} {
+      allow read: if isAuthenticated() && 
+        canAccessFamily(resource.data.familyId);
+      allow write: if isAuthenticated() && 
+        canCreateInFamily(request.resource.data.familyId) &&
+        (resource == null || isChildInUserFamily(request.resource.data.childId));
+    }
+
+    // Adventures - fast reads with familyId, secure writes with child validation
+    match /adventures/{adventureId} {
+      allow read: if isAuthenticated() && 
+        canAccessFamily(resource.data.familyId);
+      allow write: if isAuthenticated() && 
+        canCreateInFamily(request.resource.data.familyId) &&
+        (resource == null || isChildInUserFamily(request.resource.data.childId));
+    }
+
+    // AI Stories - fast reads with familyId, secure writes with child validation
+    match /ai_stories/{storyId} {
+      allow read: if isAuthenticated() && 
+        canAccessFamily(resource.data.familyId);
+      allow write: if isAuthenticated() && 
+        canCreateInFamily(request.resource.data.familyId) &&
+        (resource == null || isChildInUserFamily(request.resource.data.childId));
+    }
+
+    // Events - FAMILY-LEVEL (not child-specific)
+    match /events/{eventId} {
+      allow read: if isAuthenticated() && 
+        canAccessFamily(resource.data.familyId);
+      allow write: if isAuthenticated() && 
+        canCreateInFamily(request.resource.data.familyId) &&
+        (resource == null || isChildInUserFamily(request.resource.data.childId));
+    }
+
+    // Skill Milestones - fast reads with familyId, secure writes with child validation
+    match /skill_milestones/{milestoneId} {
+      allow read: if isAuthenticated() && 
+        canAccessFamily(resource.data.familyId);
+      allow write: if isAuthenticated() && 
+        canCreateInFamily(request.resource.data.familyId) &&
+        (resource == null || isChildInUserFamily(request.resource.data.childId));
+    }
+
+    // Skills - fast reads with familyId, secure writes with child validation
+    match /skills/{skillId} {
+      allow read: if isAuthenticated() && 
+        canAccessFamily(resource.data.familyId);
+      allow write: if isAuthenticated() && 
+        canCreateInFamily(request.resource.data.familyId) &&
+        (resource == null || isChildInUserFamily(request.resource.data.childId));
+    }
+
+    // Journal entries - USER-LEVEL (not family-level)
+    match /journal_entries/{entryId} {
+      allow read, write: if isAuthenticated() && 
+        request.auth.uid == resource.data.userId;
+    }
+
+    // Family members - for family sharing
+    match /family_members/{memberId} {
+      allow read: if isAuthenticated() && 
+        (request.auth.uid == memberId || 
+         canAccessFamily(resource.data.familyId));
+      allow write: if isAuthenticated() && 
+        (request.auth.uid == memberId || 
+         canCreateInFamily(request.resource.data.familyId));
+    }
+
+    // Family invitations - for family sharing
+    match /family_invitations/{invitationId} {
+      allow read: if isAuthenticated() && 
+        (request.auth.uid == resource.data.invitedBy ||
+         resource.data.invitedEmail == request.auth.token.email);
+      allow write: if isAuthenticated() && 
+        canCreateInFamily(request.resource.data.familyId);
+    }
+
+    // Skill progress - fast reads with familyId, secure writes with child validation
+    match /skill_progress/{progressId} {
+      allow read: if isAuthenticated() && 
+        canAccessFamily(resource.data.familyId);
+      allow write: if isAuthenticated() && 
+        canCreateInFamily(request.resource.data.familyId) &&
+        (resource == null || isChildInUserFamily(request.resource.data.childId));
+    }
+
+    // Provisional Family Profiles - USER-LEVEL
+    match /provisionalProfiles/{profileId} {
+      allow read, write: if isAuthenticated() && 
+        (resource == null || request.auth.uid == resource.data.userId) &&
+        (request.resource == null || request.auth.uid == request.resource.data.userId);
+    }
+
+    // Right Now AI requests - USER-LEVEL
+    match /right_now_requests/{requestId} {
+      allow read, write: if isAuthenticated() && 
+        request.auth.uid == resource.data.userId;
+    }
+
+    // AI responses - USER-LEVEL
+    match /ai_responses/{responseId} {
+      allow read, write: if isAuthenticated() && 
+        request.auth.uid == resource.data.userId;
+    }
+
+    // Evidence database - FAMILY-LEVEL
+    match /evidence_database/{evidenceId} {
+      allow read: if isAuthenticated() && 
+        canAccessFamily(resource.data.familyId);
+      allow write: if isAuthenticated() && 
+        canCreateInFamily(request.resource.data.familyId) &&
+        (resource == null || isChildInUserFamily(request.resource.data.childId));
     }
   }
 }

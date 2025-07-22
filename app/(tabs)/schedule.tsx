@@ -1,7 +1,7 @@
 // app/(tabs)/schedule.tsx
 
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView, Platform } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { useSchedule, ScheduleEvent } from '@/context/ScheduleContext'; // Import from our new context
 import { Plus } from 'lucide-react-native';
@@ -13,7 +13,7 @@ export default function ScheduleScreen() {
   const renderRoutineCard = ({ item }: { item: ScheduleEvent }) => (
     <View style={styles.routineCard}>
       <Text style={styles.routineName}>{item.title}</Text>
-      <Text style={styles.routineChild}>Assigned to: {item.assignedTo.length} people</Text>
+      <Text style={styles.routineChild}>Assigned to: {item.childIds.length} children</Text>
       {item.subTasks.map(task => (
         <Text key={task.taskId} style={styles.taskTitle}>- {task.description}</Text>
       ))}

@@ -2,5 +2,25 @@
   "firestore": {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
+  },
+  "emulators": {
+    "auth": {
+      "host": "0.0.0.0",
+      "port": 9099
+    },
+    "firestore": {
+      "host": "0.0.0.0",
+      "port": 8080
+    },
+    "ui": {
+      "enabled": true,
+      "port": 4001
+    },
+    "apphosting": {
+      "port": 5002,
+      "rootDirectory": "./",
+      "startCommand": "npm run dev"
+    },
+    "singleProjectMode": true
   }
 }

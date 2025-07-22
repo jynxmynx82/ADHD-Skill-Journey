@@ -9,7 +9,6 @@ import {
   Bell, 
   Moon, 
   LucideIcon, 
-  ArrowLeft,
   HelpCircle,
   Book,
   Info,
@@ -18,6 +17,7 @@ import {
   X
 } from 'lucide-react-native';
 import { ROUTES } from '../types/navigation';
+import { Header } from '@/components/ui/Header';
 
 interface SettingItemProps {
   icon: LucideIcon;
@@ -134,12 +134,7 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <ArrowLeft color={colors.text} size={24} />
-        </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>Settings</Text>
-      </View>
+      <Header title="Settings" showBackButton />
 
       <ScrollView style={styles.scrollView}>
         <View style={styles.content}>
@@ -155,7 +150,7 @@ export default function SettingsScreen() {
               />
               <SettingItem
                 icon={CreditCard}
-                title="Subscription"
+                title="Become a supporter"
                 onPress={() => handleNavigation(ROUTES.SUBSCRIPTION)}
                 colors={colors}
               />
@@ -223,21 +218,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    padding: 16,
-    paddingTop: Platform.OS === 'web' ? 8 : 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.1)',
-  },
-  backButton: {
-    marginRight: 16,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
+
   scrollView: {
     flex: 1,
   },

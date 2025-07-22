@@ -1,8 +1,8 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { initializeAuth, getAuth, Auth } from 'firebase/auth';
-import { getFirestore, Firestore } from 'firebase/firestore';
+import { initializeAuth, getAuth, connectAuthEmulator, Auth } from 'firebase/auth';
+import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
+import { getFirestore, Firestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { Platform } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
@@ -23,29 +23,45 @@ if (missingKeys.length > 0) {
 }
 
 let app: FirebaseApp;
+
 if (getApps().length === 0) {
   app = initializeApp(firebaseConfig);
 } else {
   app = getApp();
 }
 
-// Initialize Auth with platform-specific persistence
+// Initialize Auth with proper React Native persistence
 let auth: Auth;
 try {
-  if (Platform.OS === 'web') {
-    // Web: Use default browser persistence
-    auth = initializeAuth(app);
-  } else {
-    // Mobile: Use AsyncStorage persistence
-    // Note: getReactNativePersistence is not available in current Firebase version
-    // Using default auth initialization for now, with manual AsyncStorage backup in AuthContext
-    auth = initializeAuth(app);
-  }
+  // Try to use React Native persistence if available
+  const { getReactNativePersistence } = require('firebase/auth');
+  auth = initializeAuth(app, {
+    persistence: getReactNativePersistence(ReactNativeAsyncStorage)
+  });
 } catch (error) {
-  // If auth is already initialized, get the existing instance
-  auth = getAuth(app);
+  // Fallback to standard initialization
+  auth = initializeAuth(app);
 }
 
 const db: Firestore = getFirestore(app);
+
+// Connect to Firebase emulators in development
+if (__DEV__) {
+  try {
+    // Connect to Auth emulator with correct IP address and port
+    connectAuthEmulator(auth, 'http://192.168.86.211:9099', { disableWarnings: true });
+    console.log('🔥 Auth Emulator connected');
+  } catch (e) {
+    console.warn('Error connecting to Auth Emulator:', e);
+  }
+  
+  try {
+    // Connect to Firestore emulator with network IP
+    connectFirestoreEmulator(db, '192.168.86.211', 8080);
+    console.log('🔥 Firestore Emulator connected');
+  } catch (e) {
+    console.warn('Error connecting to Firestore Emulator:', e);
+  }
+}
 
 export { app, auth, db };

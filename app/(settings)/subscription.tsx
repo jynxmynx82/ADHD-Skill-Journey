@@ -2,13 +2,15 @@
 import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
-import { ArrowLeft, CheckCircle, Star, Heart, Users, FileText, Sparkles, Shield } from 'lucide-react-native';
+import { CheckCircle, Star, Heart, Users, FileText, Sparkles, Shield } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import { Header } from '@/components/ui/Header';
 
-const SupporterFeature = ({ icon: Icon, title, description }: { 
+const SupporterFeature = ({ icon: Icon, title, description, isOnBlueBackground = false }: { 
   icon: any; 
   title: string; 
   description: string; 
+  isOnBlueBackground?: boolean;
 }) => {
   const { colors } = useTheme();
   const styles = StyleSheet.create({
@@ -28,19 +30,19 @@ const SupporterFeature = ({ icon: Icon, title, description }: {
     featureTitle: {
       fontSize: 16,
       fontWeight: '600',
-      color: colors.text,
+      color: isOnBlueBackground ? '#FFFFFF' : colors.text,
       marginBottom: 4,
     },
     featureDescription: {
       fontSize: 14,
-      color: colors.textSecondary,
+      color: isOnBlueBackground ? '#F0F0F0' : colors.textSecondary,
       lineHeight: 20,
     },
   });
 
   return (
     <View style={styles.featureContainer}>
-      <Icon size={20} color={colors.primary} style={styles.featureIcon} />
+      <Icon size={20} color={isOnBlueBackground ? '#FFFFFF' : colors.primary} style={styles.featureIcon} />
       <View style={styles.featureContent}>
         <Text style={styles.featureTitle}>{title}</Text>
         <Text style={styles.featureDescription}>{description}</Text>
@@ -57,21 +59,6 @@ export default function SubscriptionScreen() {
     container: {
       flex: 1,
       backgroundColor: colors.background,
-    },
-    header: {
-      padding: 16,
-      flexDirection: 'row',
-      alignItems: 'center',
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border,
-    },
-    backButton: {
-      marginRight: 16,
-    },
-    headerTitle: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      color: colors.text,
     },
     scrollContainer: {
       flexGrow: 1,
@@ -164,12 +151,7 @@ export default function SubscriptionScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <ArrowLeft size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Become a Supporter</Text>
-      </View>
+      <Header title="Become a Supporter" showBackButton />
       
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.titleContainer}>
@@ -220,26 +202,31 @@ export default function SubscriptionScreen() {
               icon={Sparkles}
               title="Unlimited AI Adventure Stories"
               description="Create magical, personalized stories celebrating your child's progress"
+              isOnBlueBackground={true}
             />
             <SupporterFeature 
               icon={FileText}
               title="Advanced PDF Reports"
               description="Generate professional reports for teachers and therapists"
+              isOnBlueBackground={true}
             />
             <SupporterFeature 
               icon={Users}
               title="Family & Therapist Sharing"
               description="Securely collaborate with your support network"
+              isOnBlueBackground={true}
             />
             <SupporterFeature 
               icon={Star}
               title="Full Expert Resource Library"
               description="Access our complete library of in-depth guides and expert interviews"
+              isOnBlueBackground={true}
             />
             <SupporterFeature 
               icon={Heart}
               title="Advanced Journaling"
               description="Record audio notes and attach photos to your journal entries"
+              isOnBlueBackground={true}
             />
           </View>
 

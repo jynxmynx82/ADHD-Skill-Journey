@@ -23,7 +23,7 @@ export default function SignUpScreen() {
       setError('');
       setLoading(true);
       await signUp(email, password, firstName, lastName);
-      router.push('/role-selection' as any);
+      router.push('/(tabs)' as any);
     } catch (err) {
       setError('Failed to create an account');
       console.error(err);

@@ -14,8 +14,9 @@ import {
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';
 import { router } from 'expo-router';
-import { User, Lock, LogOut, Trash2, ArrowLeft, X } from 'lucide-react-native';
+import { User, Lock, LogOut, Trash2, X } from 'lucide-react-native';
 import { WebGradientWrapper } from '@/components/WebGradientWrapper';
+import { Header } from '@/components/ui/Header';
 
 export default function ProfileScreen() {
   const { colors } = useTheme();
@@ -187,16 +188,7 @@ export default function ProfileScreen() {
   return (
     <WebGradientWrapper>
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-            accessibilityLabel="Go back"
-          >
-            <ArrowLeft color={colors.text} size={24} />
-          </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>Profile Settings</Text>
-        </View>
+        <Header title="Profile Settings" showBackButton />
 
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
           {/* Profile Section */}
@@ -284,21 +276,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.1)',
-  },
-  backButton: {
-    padding: 8,
-    marginRight: 8,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
+
   scrollView: {
     flex: 1,
   },

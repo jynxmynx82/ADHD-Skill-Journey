@@ -25,6 +25,7 @@ This project prioritizes stability over new features. The core system is tested 
 ### Prerequisites
 -   Node.js 18+
 -   Expo CLI
+-   Firebase CLI: `npm install -g firebase-tools`
 -   A Firebase project
 
 ### Installation
@@ -43,10 +44,36 @@ EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 EXPO_PUBLIC_FIREBASE_APP_ID=your_app_id
 ```
 
+### ⚠️ Critical: Firebase Emulator Setup
+
+**This setup is REQUIRED for local development and testing.**
+
+The app uses Firebase emulators for local development. Follow the complete setup guide in [`docs/FIREBASE_EMULATOR_SETUP.md`](./docs/FIREBASE_EMULATOR_SETUP.md) before running the app.
+
+**Quick Start:**
+```bash
+# Initialize Firebase emulators
+firebase init emulators
+
+# Start emulators (required for app to work)
+firebase emulators:start --only firestore,auth
+
+# In another terminal, start the app
+npx expo start --clear
+```
+
+**Key Points:**
+- Emulators must be running for the app to function
+- Network IP configuration is required for mobile device testing
+- See the detailed guide for troubleshooting common issues
+
 ### Running the App
 ```bash
-# Start the development server
-npm start
+# Start Firebase emulators (REQUIRED)
+firebase emulators:start --only firestore,auth
+
+# In another terminal, start the development server
+npx expo start --clear
 
 # Run on the iOS simulator
 npm run ios

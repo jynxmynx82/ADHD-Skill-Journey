@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const LoginSchema = Yup.object().shape({
   email: Yup.string()
@@ -73,84 +74,90 @@ export default function LoginScreen() {
   const lockIcon = useMemo(() => <Lock size={20} color={theme.colors.gray[500]} />, []);
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
-    >
-      <ScrollView 
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
       >
-        <View style={styles.header}>
-          <Image
-            source={require('@/assets/images/ADHD_Family_Logo.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <Text style={styles.title}>ADHD Family Support</Text>
-          <Text style={styles.subtitle}>Sign in to your account</Text>
-        </View>
-        
-        <View style={styles.form}>
-          {loginError && (
-            <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>{loginError}</Text>
-            </View>
-          )}
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.header}>
+            <Image
+              source={require('@/assets/images/ADHD_Family_Logo.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+            <Text style={styles.title}>ADHD Family Support</Text>
+            <Text style={styles.subtitle}>Sign in to your account</Text>
+          </View>
+          
+          <View style={styles.form}>
+            {loginError && (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{loginError}</Text>
+              </View>
+            )}
 
-          <Input
-            label="Email"
-            placeholder="Enter your email"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            value={formik.values.email}
-            onChangeText={handleEmailChange}
-            onBlur={handleEmailBlur}
-            error={formik.touched.email ? formik.errors.email : undefined}
-            touched={formik.touched.email}
-            leftIcon={mailIcon}
-          />
+            <Input
+              label="Email"
+              placeholder="Enter your email"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={formik.values.email}
+              onChangeText={handleEmailChange}
+              onBlur={handleEmailBlur}
+              error={formik.touched.email ? formik.errors.email : undefined}
+              touched={formik.touched.email}
+              leftIcon={mailIcon}
+            />
 
-          <Input
-            label="Password"
-            placeholder="Enter your password"
-            secureTextEntry
-            value={formik.values.password}
-            onChangeText={handlePasswordChange}
-            onBlur={handlePasswordBlur}
-            error={formik.touched.password ? formik.errors.password : undefined}
-            touched={formik.touched.password}
-            leftIcon={lockIcon}
-          />
+            <Input
+              label="Password"
+              placeholder="Enter your password"
+              secureTextEntry
+              value={formik.values.password}
+              onChangeText={handlePasswordChange}
+              onBlur={handlePasswordBlur}
+              error={formik.touched.password ? formik.errors.password : undefined}
+              touched={formik.touched.password}
+              leftIcon={lockIcon}
+            />
 
-          <TouchableOpacity style={styles.forgotPassword}>
-            <Text style={styles.forgotPasswordText}>Forgot password?</Text>
-          </TouchableOpacity>
-
-          <Button
-            title="Sign In"
-            onPress={handleSubmit}
-            loading={isLoading}
-            disabled={isLoading}
-            fullWidth
-          />
-        </View>
-
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Don't have an account?</Text>
-          <Link href="/(auth)/register" asChild>
-            <TouchableOpacity>
-              <Text style={styles.signUpText}>Sign Up</Text>
+            <TouchableOpacity style={styles.forgotPassword}>
+              <Text style={styles.forgotPasswordText}>Forgot password?</Text>
             </TouchableOpacity>
-          </Link>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+
+            <Button
+              title="Sign In"
+              onPress={handleSubmit}
+              loading={isLoading}
+              disabled={isLoading}
+              fullWidth
+            />
+          </View>
+
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Don't have an account?</Text>
+            <Link href="/(auth)/register" asChild>
+              <TouchableOpacity>
+                <Text style={styles.signUpText}>Sign Up</Text>
+              </TouchableOpacity>
+            </Link>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: theme.colors.white,
+  },
   container: { 
     flex: 1, 
     backgroundColor: theme.colors.white, 
@@ -162,7 +169,7 @@ const styles = StyleSheet.create({
   header: { 
     alignItems: 'center', 
     marginBottom: theme.spacing[6], 
-    marginTop: theme.spacing[10], 
+    marginTop: theme.spacing[4], 
   },
   logo: { 
     width: Platform.select({ web: 200, default: 150, }), 

@@ -27,6 +27,11 @@ import {
   AdventureWinType 
 } from '@/types/skillJourney';
 
+// Helper function to get family ID from user
+const getFamilyId = (userId: string): string => {
+  return `family_${userId}`;
+};
+
 // Helper function to convert Firestore timestamps to Date objects
 const timestampToDate = (timestamp: any): Date => {
   if (timestamp instanceof Timestamp) {
@@ -48,14 +53,16 @@ const dateToTimestamp = (date: Date): Timestamp => {
 
 export const slice1Service = {
   // Get all journeys for a child
-  async getJourneys(childId: string): Promise<{ data: Journey[] | null; error: string | null }> {
+  async getJourneys(childId: string, userId: string): Promise<{ data: Journey[] | null; error: string | null }> {
     try {
       console.log('Getting journeys for childId:', childId);
       
+      const familyId = getFamilyId(userId);
       const journeysRef = collection(db, 'journeys');
       const q = query(
         journeysRef,
         where('childId', '==', childId),
+        where('familyId', '==', familyId),
         orderBy('createdAt', 'desc')
       );
       
@@ -92,10 +99,11 @@ export const slice1Service = {
   },
 
   // Create a new journey (skill + progress) for a child
-  async createJourney(childId: string, skillData: CreateSimpleSkillForm): Promise<{ data: Journey | null; error: string | null }> {
+  async createJourney(childId: string, skillData: CreateSimpleSkillForm, userId: string): Promise<{ data: Journey | null; error: string | null }> {
     try {
       console.log('Creating journey for childId:', childId, 'skillData:', skillData);
       
+      const familyId = getFamilyId(userId);
       const progress: JourneyProgress = {
         adventureCount: 0,
         lastUpdated: new Date()
@@ -103,6 +111,7 @@ export const slice1Service = {
       
       const journeyData = {
         childId,
+        familyId,
         skillData: {
           ...skillData,
           id: `skill_${Date.now()}`,
@@ -128,15 +137,17 @@ export const slice1Service = {
   },
 
   // Get adventures for a specific skill
-  async getAdventures(childId: string, skillId: string): Promise<{ data: Adventure[] | null; error: string | null }> {
+  async getAdventures(childId: string, skillId: string, userId: string): Promise<{ data: Adventure[] | null; error: string | null }> {
     try {
       console.log('Getting adventures for childId:', childId, 'skillId:', skillId);
       
+      const familyId = getFamilyId(userId);
       const adventuresRef = collection(db, 'adventures');
       const q = query(
         adventuresRef,
         where('childId', '==', childId),
         where('skillId', '==', skillId),
+        where('familyId', '==', familyId),
         orderBy('createdAt', 'desc')
       );
       
@@ -164,17 +175,19 @@ export const slice1Service = {
   },
 
   // Log a new adventure and update progress
-  async logAdventure(childId: string, skillId: string, adventureData: CreateAdventureForm): Promise<{ data: Adventure | null; error: string | null }> {
+  async logAdventure(childId: string, skillId: string, adventureData: CreateAdventureForm, userId: string): Promise<{ data: Adventure | null; error: string | null }> {
     try {
       console.log('Logging adventure for childId:', childId, 'skillId:', skillId, 'adventureData:', adventureData);
       
+      const familyId = getFamilyId(userId);
       // First, log the adventure
       const adventureDoc = {
         childId,
+        familyId,
         skillId,
         text: adventureData.text,
         winType: adventureData.winType,
-        photoUrl: adventureData.photoUrl ?? null,
+        photoUrl: adventureData.photoUrl || undefined,
         createdAt: serverTimestamp()
       };
       
@@ -213,7 +226,7 @@ export const slice1Service = {
         id: adventureRef.id,
         text: adventureData.text,
         winType: adventureData.winType,
-        photoUrl: adventureData.photoUrl ?? null,
+        photoUrl: adventureData.photoUrl || undefined,
         createdAt: new Date()
       };
       
