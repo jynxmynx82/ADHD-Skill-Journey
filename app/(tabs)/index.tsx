@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Image, Platform, Dimensions } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
-import { Settings, Calendar, Search, Heart, PenTool, Users, Clock, BookOpen, Star, AlertCircle, Mic } from 'lucide-react-native';
+import { Settings, Calendar, Search, Heart, PenTool, Users, Clock, BookOpen, Star, AlertCircle, Mic, Lightbulb, MessageCircle } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { loadJournalEntries } from '@/lib/journalStorage';
 import type { RecentActivity } from '@/types/journal';
@@ -23,9 +23,9 @@ export default function Home() {
           .slice(0, 3)
           .map(entry => ({
             type: 'journal' as const,
-            title: `Journal Entry - ${new Date(entry.timestamp).toLocaleDateString()}`,
+            title: `Journal Entry - ${new Date(entry.createdAt).toLocaleDateString()}`,
             description: entry.content.substring(0, 100) + (entry.content.length > 100 ? '...' : ''),
-            timestamp: entry.timestamp,
+            timestamp: entry.createdAt,
             icon: entry.type === 'audio' ? 'Mic' as const : 'PenTool' as const
           }));
         
@@ -90,7 +90,7 @@ export default function Home() {
       marginLeft: 'auto',
     },
     pageTitle: {
-      fontSize: 32,
+      fontSize: 24,
       fontWeight: 'bold',
       color: colors.text,
       marginBottom: 8,
@@ -98,18 +98,19 @@ export default function Home() {
     },
     welcome: {
       fontSize: 18,
-      color: colors.textSecondary,
+      color: colors.text,
       marginBottom: 16,
       paddingLeft: 16,
     },
     section: {
-      padding: 16,
-      paddingTop: 0,
+      marginBottom: 24,
+      paddingHorizontal: 16,
     },
     sectionTitle: {
-      fontSize: 18,
-      fontWeight: '600',
+      fontSize: 20,
+      fontWeight: 'bold',
       marginBottom: 12,
+      color: colors.text,
     },
     card: {
       padding: 16,
@@ -271,12 +272,16 @@ export default function Home() {
     }
   };
 
-  const getActivityIcon = (icon: 'Mic' | 'PenTool') => {
+  const getActivityIcon = (icon: 'Mic' | 'PenTool' | 'Lightbulb' | 'MessageCircle') => {
     switch (icon) {
       case 'Mic':
         return <Mic size={16} color={colors.primary} />;
       case 'PenTool':
         return <PenTool size={16} color={colors.primary} />;
+      case 'Lightbulb':
+        return <Lightbulb size={16} color={colors.primary} />;
+      case 'MessageCircle':
+        return <MessageCircle size={16} color={colors.primary} />;
       default:
         return <PenTool size={16} color={colors.primary} />;
     }

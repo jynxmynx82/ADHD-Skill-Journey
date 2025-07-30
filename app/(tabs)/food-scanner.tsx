@@ -13,7 +13,6 @@ import {
   Linking, // Added Linking
   ViewStyle,
   TextStyle,
-  SafeAreaView,
   useWindowDimensions,
   ImageStyle,
 } from 'react-native';
@@ -24,6 +23,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '@/context/ThemeContext';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { AppSafeArea, PageHeader, TYPOGRAPHY, COLORS, SPACING } from '@/components/Layout';
 // Assuming theme is correctly imported from its actual path if not a mock
 // import { theme } from '@/constants/theme';
 
@@ -867,34 +867,35 @@ export default function FoodScannerScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <AppSafeArea style={styles.container}>
+      <PageHeader
+        title="Food Scanner"
+        onBack={() => router.back()}
+        rightComponent={
+          <TouchableOpacity 
+            style={styles.historyButton}
+            onPress={() => setShowHistory(!showHistory)}
+          >
+            <History color={colors.text} size={24} />
+          </TouchableOpacity>
+        }
+      />
       <View style={styles.inner}>
-        <View style={styles.header}>
-          <View style={styles.headerContent}>
-            <Text style={styles.headerTitle}>Food Scanner</Text>
-            <TouchableOpacity 
-              style={styles.historyButton}
-              onPress={() => setShowHistory(!showHistory)}
-            >
-              <History color={colors.text} size={24} />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.searchContainer}>
-            <TextInput
-              style={[styles.searchInput, { color: colors.text }]}
-              placeholder="Search by name or barcode"
-              placeholderTextColor={colors.textSecondary}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              onSubmitEditing={handleSearch}
-            />
-            <TouchableOpacity 
-              style={styles.searchButton}
-              onPress={handleSearch}
-            >
-              <Search color={theme.colors.white} size={20} />
-            </TouchableOpacity>
-          </View>
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={[styles.searchInput, { color: colors.text }]}
+            placeholder="Search by name or barcode"
+            placeholderTextColor={colors.textSecondary}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            onSubmitEditing={handleSearch}
+          />
+          <TouchableOpacity 
+            style={styles.searchButton}
+            onPress={handleSearch}
+          >
+            <Search color={theme.colors.white} size={20} />
+          </TouchableOpacity>
         </View>
         
         {showHistory ? (
@@ -935,7 +936,7 @@ export default function FoodScannerScreen() {
           </ScrollView>
         )}
       </View>
-    </SafeAreaView>
+    </AppSafeArea>
   );
 }
 

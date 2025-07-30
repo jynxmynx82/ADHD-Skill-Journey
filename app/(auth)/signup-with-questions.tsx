@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Platform, ScrollView, Alert, Image } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Platform, ScrollView, Alert, Image, KeyboardAvoidingView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
 import { createProvisionalProfile } from '@/lib/provisionalProfileService';
@@ -30,6 +30,11 @@ export default function SignUpWithQuestionsScreen() {
     firstName: '',
     lastName: '',
   });
+
+  // Refs for field navigation
+  const lastNameRef = useRef<TextInput>(null);
+  const emailRef = useRef<TextInput>(null);
+  const passwordRef = useRef<TextInput>(null);
 
   const { signUp } = useAuth();
   const { user } = useAuth();
@@ -121,73 +126,93 @@ export default function SignUpWithQuestionsScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <View style={styles.content}>
-          <View style={styles.header}>
-            <Image 
-              source={require('@/assets/images/ADHD_Family_Logo.png')} 
-              style={styles.logo}
-              resizeMode="contain"
-            />
-            <Text style={styles.title}>Create Account</Text>
-            <Text style={styles.subtitle}>Join ADHD Family Support</Text>
-            <Text style={styles.description}>
-              We'll ask a few quick questions to personalize your experience
-            </Text>
-          </View>
-
-          {error ? <Text style={styles.error}>{error}</Text> : null}
-
-          <View style={styles.form}>
-            <TextInput
-              style={styles.input}
-              placeholder="First Name"
-              value={signupData.firstName}
-              onChangeText={(text) => setSignupData({ ...signupData, firstName: text })}
-              autoCapitalize="words"
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Last Name"
-              value={signupData.lastName}
-              onChangeText={(text) => setSignupData({ ...signupData, lastName: text })}
-              autoCapitalize="words"
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Email"
-              value={signupData.email}
-              onChangeText={(text) => setSignupData({ ...signupData, email: text })}
-              autoCapitalize="none"
-              keyboardType="email-address"
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Password"
-              value={signupData.password}
-              onChangeText={(text) => setSignupData({ ...signupData, password: text })}
-              secureTextEntry
-            />
-
-            <TouchableOpacity 
-              style={[styles.button, loading && styles.buttonDisabled]}
-              onPress={handleSignUp}
-              disabled={loading}
-            >
-              <Text style={styles.buttonText}>
-                {loading ? 'Creating Account...' : 'Create Account & Continue'}
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
+      >
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.content}>
+            <View style={styles.header}>
+              <Image 
+                source={require('@/assets/images/ADHD_Family_Logo.png')} 
+                style={styles.logo}
+                resizeMode="contain"
+              />
+              <Text style={styles.title}>Create Account</Text>
+              <Text style={styles.subtitle}>Join ADHD Family Support</Text>
+              <Text style={styles.description}>
+                We'll ask a few quick questions to personalize your experience
               </Text>
-            </TouchableOpacity>
+            </View>
 
-            <TouchableOpacity 
-              style={styles.linkButton}
-              onPress={() => router.push('/' as any)}
-            >
-              <Text style={styles.linkText}>Already have an account? Sign In</Text>
-            </TouchableOpacity>
+            {error ? <Text style={styles.error}>{error}</Text> : null}
+
+            <View style={styles.form}>
+              <TextInput
+                style={styles.input}
+                placeholder="First Name"
+                value={signupData.firstName}
+                onChangeText={(text) => setSignupData({ ...signupData, firstName: text })}
+                autoCapitalize="words"
+                returnKeyType="next"
+                onSubmitEditing={() => lastNameRef.current?.focus()}
+              />
+              <TextInput
+                ref={lastNameRef}
+                style={styles.input}
+                placeholder="Last Name"
+                value={signupData.lastName}
+                onChangeText={(text) => setSignupData({ ...signupData, lastName: text })}
+                autoCapitalize="words"
+                returnKeyType="next"
+                onSubmitEditing={() => emailRef.current?.focus()}
+              />
+              <TextInput
+                ref={emailRef}
+                style={styles.input}
+                placeholder="Email"
+                value={signupData.email}
+                onChangeText={(text) => setSignupData({ ...signupData, email: text })}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                returnKeyType="next"
+                onSubmitEditing={() => passwordRef.current?.focus()}
+              />
+              <TextInput
+                ref={passwordRef}
+                style={styles.input}
+                placeholder="Password"
+                value={signupData.password}
+                onChangeText={(text) => setSignupData({ ...signupData, password: text })}
+                secureTextEntry
+                returnKeyType="done"
+                onSubmitEditing={handleSignUp}
+              />
+
+              <TouchableOpacity 
+                style={[styles.button, loading && styles.buttonDisabled]}
+                onPress={handleSignUp}
+                disabled={loading}
+              >
+                <Text style={styles.buttonText}>
+                  {loading ? 'Creating Account...' : 'Create Account & Continue'}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={styles.linkButton}
+                onPress={() => router.push('/' as any)}
+              >
+                <Text style={styles.linkText}>Already have an account? Sign In</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -204,6 +229,10 @@ const styles = StyleSheet.create({
       alignItems: 'center',
       justifyContent: 'center',
     } : {}),
+  },
+  scrollContent: {
+    flexGrow: 1,
+    padding: 20,
   },
   content: {
     width: '100%',

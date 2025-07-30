@@ -1,18 +1,17 @@
+import { BaseEntity, DataClassification, DataSensitivity } from './compliance';
+
 /**
  * Skill Journey Types
  * Core data models for tracking skill development and progress
  */
 
-export interface Skill {
-  id: string;
+export interface Skill extends BaseEntity {
   name: string;
   description: string;
   category: SkillCategory;
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   estimatedDays: number; // Average time to master
   childId: string;
-  createdAt: Date;
-  updatedAt: Date;
   isActive: boolean;
   parentNotes?: string;
   childNotes?: string;

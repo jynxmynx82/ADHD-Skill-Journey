@@ -4,6 +4,23 @@ A React Native/Expo app designed to help parents track and support their childre
 
 For a detailed explanation of product features, monetization strategy, and feature specifications, please see the [`docs/`](./docs) directory.
 
+## Documentation
+
+### Core Architecture
+- [Data Architecture & HIPAA Compliance](./docs/DATA_ARCHITECTURE_HIPAA_COMPLIANCE.md) - Comprehensive data model and compliance strategy
+- [Developer Guide for HIPAA Data](./docs/DEVELOPER_GUIDE_HIPAA_DATA.md) - Quick reference for developers
+- [Typography System](./docs/TYPOGRAPHY_SYSTEM.md) - Consistent typography guidelines
+- [Design Token System](./docs/DESIGN_TOKEN_SYSTEM.md) - Complete design system and reusable components
+
+### Feature Specifications
+- [Product Overview](./docs/PRODUCT_OVERVIEW.md) - High-level product vision and features
+- [Monetization Strategy](./docs/MONETIZATION_STRATEGY.md) - Revenue model and pricing
+- [Styling Guide](./docs/STYLING_GUIDE.md) - UI/UX design patterns
+
+### Development Setup
+- **[Firebase Emulator Setup](./docs/FIREBASE_EMULATOR_SETUP.md)** - Required for local development
+- **[Coding Architecture Principles](./docs/CodingArchitecturePrinciples.md)** - Development guidelines
+
 ## 🎯 Project Status
 
 **✅ Stable & Production-Ready**

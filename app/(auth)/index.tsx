@@ -30,15 +30,6 @@ export default function AuthScreen() {
                 We'll ask a few quick questions to personalize your experience
               </Text>
             </View>
-
-            <View style={styles.quickSignupSection}>
-              <Text style={styles.quickSignupLabel}>Or</Text>
-              <Link href="/(auth)/signup" asChild>
-                <TouchableOpacity style={styles.secondaryButton}>
-                  <Text style={styles.secondaryButtonText}>Quick Signup (No Questions)</Text>
-                </TouchableOpacity>
-              </Link>
-            </View>
           </View>
 
           <View style={styles.footer}>

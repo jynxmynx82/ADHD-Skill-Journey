@@ -1,15 +1,15 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, User, deleteUser } from 'firebase/auth';
-import { getFirestore, doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
-import { auth, app } from '@/firebaseConfig';
+import { getFirestore, doc, setDoc, getDoc, deleteDoc, updateDoc } from 'firebase/firestore';
+import { auth, app } from '../firebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-interface UserData {
-  uid: string;
+import { BaseEntity, DataClassification, DataSensitivity } from '../types/compliance';
+
+interface UserData extends BaseEntity {
   email: string;
   firstName: string;
   lastName: string;
-  createdAt: Date;
   userRole?: 'user' | 'admin';
 }
 
@@ -100,24 +100,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
     try {
+      console.log('🔥 AuthContext: Starting signUp process...', { email, firstName, lastName });
       setIsLoading(true);
+      
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
+      console.log('✅ AuthContext: Firebase Auth user created successfully:', user.uid);
 
       // Create user document in Firestore
       const userData: UserData = {
-        uid: user.uid,
+        id: user.uid,
+        userId: user.uid,
         email: user.email!,
         firstName,
         lastName,
-        createdAt: new Date(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        dataClassification: 'non_hipaa' as DataClassification,
+        dataSensitivity: 'internal' as DataSensitivity,
+        encryptionLevel: 'none',
+        createdBy: user.uid,
+        lastModifiedBy: user.uid,
+        version: 1,
+        autoDelete: false
       };
 
+      console.log('📝 AuthContext: Creating user document in Firestore...', { userId: user.uid });
       await setDoc(doc(db, 'users', user.uid), userData);
+      console.log('✅ AuthContext: User document created successfully in Firestore');
+      
       setUserData(userData);
+      setUser(user); // Add this line to set the user in context
       await AsyncStorage.setItem('userData', JSON.stringify(userData));
+      console.log('✅ AuthContext: User data saved to local storage');
+      
+      console.log('🎉 AuthContext: SignUp process completed successfully!');
     } catch (error) {
-      console.error('Error signing up:', error);
+      console.error('❌ AuthContext: Error signing up:', error);
       throw error;
     } finally {
       setIsLoading(false);
@@ -129,7 +148,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     try {
       const userRef = doc(db, 'users', user.uid);
-      await setDoc(userRef, { userRole: role }, { merge: true });
+      await updateDoc(userRef, { userRole: role, updatedAt: new Date().toISOString() });
       
       // Update local state
       const updatedUserData = userData ? { ...userData, userRole: role } : null;

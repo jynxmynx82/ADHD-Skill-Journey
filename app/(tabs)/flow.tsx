@@ -156,7 +156,7 @@ export default function FlowScreen() {
       alignItems: 'center',
     },
     statNumber: {
-      fontSize: 18,
+      fontSize: 20,
       fontWeight: 'bold',
       color: colors.primary,
     },

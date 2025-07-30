@@ -13,9 +13,11 @@ import {
   doc 
 } from 'firebase/firestore';
 
+import { BaseEntity, DataClassification, DataSensitivity } from '../types/compliance';
+import { AuditLoggingService } from '../lib/auditLoggingService';
+
 // Complete Child interface
-export interface Child {
-  id: string;
+export interface Child extends BaseEntity {
   familyId: string;
   name: string;
   age: number;
@@ -26,8 +28,6 @@ export interface Child {
   medications?: string;
   allergies?: string;
   profileImage?: string;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 // Context type with CRUD operations
@@ -73,10 +73,66 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
       const familyId = `family_${user.uid}`;
       const q = query(collection(db, 'children'), where('familyId', '==', familyId));
       const querySnapshot = await getDocs(q);
-      const childrenData = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...(doc.data() as Omit<Child, 'id'>),
+      
+      const childrenData = await Promise.all(querySnapshot.docs.map(async (doc) => {
+        const data = doc.data();
+        
+        // Check if this is legacy data (missing BaseEntity fields)
+        const isLegacyData = !data.dataClassification || !data.dataSensitivity;
+        
+        // Create child object with BaseEntity fields
+        const child: Child = {
+          id: doc.id,
+          familyId: data.familyId,
+          name: data.name,
+          age: data.age,
+          diagnosis: data.diagnosis,
+          strengths: data.strengths || [],
+          challenges: data.challenges || [],
+          interests: data.interests || [],
+          medications: data.medications,
+          allergies: data.allergies,
+          profileImage: data.profileImage,
+          
+          // BaseEntity fields (use existing or set defaults)
+          userId: data.userId || user.uid,
+          createdAt: data.createdAt || new Date().toISOString(),
+          updatedAt: data.updatedAt || new Date().toISOString(),
+          dataClassification: data.dataClassification || 'non_hipaa',
+          dataSensitivity: data.dataSensitivity || 'confidential',
+          encryptionLevel: data.encryptionLevel || 'none',
+          createdBy: data.createdBy || user.uid,
+          lastModifiedBy: data.lastModifiedBy || user.uid,
+          version: data.version || 1,
+          autoDelete: data.autoDelete || false
+        };
+        
+        // If this is legacy data, update the document with BaseEntity fields
+        if (isLegacyData) {
+          console.log(`🔄 Migrating legacy child data: ${child.name}`);
+          try {
+            await updateDoc(doc.ref, {
+              userId: child.userId,
+              createdAt: child.createdAt,
+              updatedAt: child.updatedAt,
+              dataClassification: child.dataClassification,
+              dataSensitivity: child.dataSensitivity,
+              encryptionLevel: child.encryptionLevel,
+              createdBy: child.createdBy,
+              lastModifiedBy: child.lastModifiedBy,
+              version: child.version,
+              autoDelete: child.autoDelete
+            });
+            console.log(`✅ Successfully migrated child: ${child.name}`);
+          } catch (migrationError) {
+            console.error(`❌ Failed to migrate child ${child.name}:`, migrationError);
+            // Continue with the child data even if migration fails
+          }
+        }
+        
+        return child;
       }));
+      
       setFamilyChildren(childrenData);
     } catch (err: any) {
       console.error("Error fetching children:", err);
@@ -96,6 +152,8 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
     }
     
     try {
+      const now = new Date().toISOString();
+      
       // Clean the data to ensure no undefined values
       const cleanChildData: any = {
         name: childData.name,
@@ -105,8 +163,18 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
         challenges: childData.challenges || [],
         interests: childData.interests || [],
         familyId: `family_${user.uid}`,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        
+        // BaseEntity fields
+        userId: user.uid,
+        createdAt: now,
+        updatedAt: now,
+        dataClassification: 'non_hipaa',
+        dataSensitivity: 'confidential',
+        encryptionLevel: 'none',
+        createdBy: user.uid,
+        lastModifiedBy: user.uid,
+        version: 1,
+        autoDelete: false
       };
 
       // Only add optional fields if they exist and have content
@@ -122,6 +190,14 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
       
       const docRef = await addDoc(collection(db, 'children'), cleanChildData);
       console.log('✅ FamilyContext: Child added to Firebase with ID:', docRef.id);
+      
+      // Log the creation
+      await AuditLoggingService.logCreate(
+        user.uid,
+        'children',
+        docRef.id,
+        'User added child to family'
+      );
       
       await fetchChildren(); // Refresh the list
       return docRef.id;
@@ -148,12 +224,40 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
 
   const updateChild = async (childId: string, updates: Partial<Child>) => {
     const childRef = doc(db, 'children', childId);
-    await updateDoc(childRef, { ...updates, updatedAt: new Date() });
+    const now = new Date().toISOString();
+    await updateDoc(childRef, { 
+      ...updates, 
+      updatedAt: now,
+      lastModifiedBy: user?.uid || 'unknown',
+      version: (updates.version || 1) + 1
+    });
+    
+    // Log the update
+    if (user?.uid) {
+      await AuditLoggingService.logUpdate(
+        user.uid,
+        'children',
+        childId,
+        'User updated child information'
+      );
+    }
+    
     await fetchChildren();
   };
 
   const deleteChild = async (childId: string) => {
     await deleteDoc(doc(db, 'children', childId));
+    
+    // Log the deletion
+    if (user?.uid) {
+      await AuditLoggingService.logDelete(
+        user.uid,
+        'children',
+        childId,
+        'User deleted child from family'
+      );
+    }
+    
     await fetchChildren();
   };
 

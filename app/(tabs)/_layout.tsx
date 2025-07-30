@@ -4,6 +4,7 @@ import { Home, Target, PenTool, Menu, Droplets } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { Platform, View, Text, StyleSheet, TouchableOpacity, StatusBar, SafeAreaView } from 'react-native';
 import HamburgerMenu from '@/components/HamburgerMenu';
+import AIQuickAdviceFAB from '@/components/AIQuickAdviceFAB';
 
 export default function MainTabLayout() {
   const { colors } = useTheme();
@@ -82,6 +83,8 @@ export default function MainTabLayout() {
           isOpen={isMenuOpen} 
           onClose={() => setIsMenuOpen(false)} 
         />
+
+        <AIQuickAdviceFAB />
 
         <Tabs
           screenOptions={{

@@ -337,15 +337,16 @@ export default function ResourcesScreen() {
       padding: 16,
     },
     resourceTitle: {
-      fontSize: 18,
-      fontWeight: '600',
+      fontSize: 20,
+      fontWeight: 'bold',
       color: colors.text,
       marginBottom: 8,
     },
     resourceDescription: {
-      fontSize: 14,
+      fontSize: 16,
       color: colors.textSecondary,
       marginBottom: 16,
+      fontWeight: '400'
     },
     resourceFooter: {
       flexDirection: 'row',

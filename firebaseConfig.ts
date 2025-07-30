@@ -2,6 +2,7 @@ import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { initializeAuth, getAuth, connectAuthEmulator, Auth } from 'firebase/auth';
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 import { getFirestore, Firestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
 import { Platform } from 'react-native';
 
 const firebaseConfig = {
@@ -44,24 +45,36 @@ try {
 }
 
 const db: Firestore = getFirestore(app);
+const functions = getFunctions(app);
 
 // Connect to Firebase emulators in development
 if (__DEV__) {
+  // Use hostname instead of hardcoded IP for better portability
+  const EMULATOR_HOST = 'mac.lan';
+  
   try {
-    // Connect to Auth emulator with correct IP address and port
-    connectAuthEmulator(auth, 'http://192.168.86.211:9099', { disableWarnings: true });
+    // Connect to Auth emulator using hostname
+    connectAuthEmulator(auth, `http://${EMULATOR_HOST}:9099`, { disableWarnings: true });
     console.log('🔥 Auth Emulator connected');
   } catch (e) {
     console.warn('Error connecting to Auth Emulator:', e);
   }
   
   try {
-    // Connect to Firestore emulator with network IP
-    connectFirestoreEmulator(db, '192.168.86.211', 8080);
+    // Connect to Firestore emulator using hostname
+    connectFirestoreEmulator(db, EMULATOR_HOST, 8080);
     console.log('🔥 Firestore Emulator connected');
   } catch (e) {
     console.warn('Error connecting to Firestore Emulator:', e);
   }
+  
+  try {
+    // Connect to Functions emulator using hostname
+    connectFunctionsEmulator(functions, EMULATOR_HOST, 5001);
+    console.log('🔥 Functions Emulator connected');
+  } catch (e) {
+    console.warn('Error connecting to Functions Emulator:', e);
+  }
 }
 
-export { app, auth, db };
+export { app, auth, db, functions };

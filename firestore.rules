@@ -41,7 +41,7 @@ service cloud.firestore {
     // Children - FAMILY-LEVEL
     match /children/{childId} {
       allow read: if isAuthenticated() && 
-        canAccessFamily(resource.data.familyId);
+        (resource == null || canAccessFamily(resource.data.familyId));
       allow create: if isAuthenticated() && 
         canCreateInFamily(request.resource.data.familyId);
       allow update, delete: if isAuthenticated() && 
@@ -139,9 +139,10 @@ service cloud.firestore {
 
     // Provisional Family Profiles - USER-LEVEL
     match /provisionalProfiles/{profileId} {
-      allow read, write: if isAuthenticated() && 
-        (resource == null || request.auth.uid == resource.data.userId) &&
-        (request.resource == null || request.auth.uid == request.resource.data.userId);
+      allow read: if isAuthenticated() && 
+        (resource == null || request.auth.uid == resource.data.userId);
+      allow write: if isAuthenticated() && 
+        request.auth.uid == request.resource.data.userId;
     }
 
     // Right Now AI requests - USER-LEVEL
@@ -163,6 +164,28 @@ service cloud.firestore {
       allow write: if isAuthenticated() && 
         canCreateInFamily(request.resource.data.familyId) &&
         (resource == null || isChildInUserFamily(request.resource.data.childId));
+    }
+
+    // Personal Learning Hub Collections - USER-LEVEL
+    match /usageTracking/{usageId} {
+      allow read, write: if isAuthenticated() && 
+        (resource == null || request.auth.uid == resource.data.userId);
+    }
+
+    match /helpfulStrategies/{strategyId} {
+      allow read, write: if isAuthenticated() && 
+        (resource == null || request.auth.uid == resource.data.userId);
+    }
+
+    match /adviceSessions/{sessionId} {
+      allow read, write: if isAuthenticated() && 
+        (resource == null || request.auth.uid == resource.data.userId);
+    }
+
+    // Audit logs - USER-LEVEL
+    match /auditLogs/{logId} {
+      allow read, write: if isAuthenticated() && 
+        (resource == null || request.auth.uid == resource.data.userId);
     }
   }
 }

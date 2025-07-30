@@ -440,8 +440,9 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
+    color: '#333'
   },
   subtitle: {
     fontSize: 16,
