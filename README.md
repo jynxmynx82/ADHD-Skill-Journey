@@ -12,6 +12,9 @@ For a detailed explanation of product features, monetization strategy, and featu
 - [Typography System](./docs/TYPOGRAPHY_SYSTEM.md) - Consistent typography guidelines
 - [Design Token System](./docs/DESIGN_TOKEN_SYSTEM.md) - Complete design system and reusable components
 
+### Development Checkpoints
+- [Design Token System Complete](./docs/CHECKPOINT_DESIGN_TOKEN_SYSTEM_COMPLETE.md) - Latest checkpoint with comprehensive progress summary
+
 ### Feature Specifications
 - [Product Overview](./docs/PRODUCT_OVERVIEW.md) - High-level product vision and features
 - [Monetization Strategy](./docs/MONETIZATION_STRATEGY.md) - Revenue model and pricing
