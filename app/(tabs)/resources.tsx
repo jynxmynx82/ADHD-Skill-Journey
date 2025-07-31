@@ -13,7 +13,7 @@ import {
   Platform,
 } from 'react-native';
 import { Stack } from 'expo-router';
-import { ExternalLink, BookOpen, Video, Users, Heart, Brain, Star, ChevronRight, Search, Filter } from 'lucide-react-native';
+import { ExternalLink, BookOpen, Video, Users, Heart, Brain, Star, Search, Filter } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { AppSafeArea, PageHeader, Card, TYPOGRAPHY, COLORS, SPACING } from '@/components/Layout';
 import { Resource, ResourceCategory } from '@/types';
@@ -237,10 +237,7 @@ export default function ResourcesScreen() {
       alignItems: 'center',
       flex: 1,
     },
-    backButton: {
-      marginRight: 12,
-      padding: 4,
-    },
+
           title: {
         ...TYPOGRAPHY.styles.title,
         color: colors.text,
@@ -377,13 +374,6 @@ export default function ResourcesScreen() {
         <View style={styles.inner}>
           <View style={styles.header}>
             <View style={styles.headerContent}>
-              <TouchableOpacity 
-                style={styles.backButton}
-                onPress={() => router.back()}
-                accessibilityLabel="Go back"
-              >
-                <ChevronRight color={colors.text} size={24} />
-              </TouchableOpacity>
               <Text style={styles.title}>Resources</Text>
             </View>
           </View>

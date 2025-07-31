@@ -18,7 +18,7 @@ import {
   Image,
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
-import { Plus, Edit, Trash2, User, Calendar, Activity, Heart, Brain, Star, ArrowLeft, Users, PenLine, ChevronRight } from 'lucide-react-native';
+import { Plus, Edit, Trash2, User, Calendar, Activity, Heart, Brain, Star, Users, PenLine, ChevronRight } from 'lucide-react-native';
 import { useFamily } from '@/context/FamilyContext';
 import { useAuth } from '@/context/AuthContext';
 import { Child } from '@/context/FamilyContext';
@@ -68,13 +68,6 @@ export default function ChildrenScreen() {
   const renderListHeader = () => (
     <View style={styles.headerContainer}>
       <View style={styles.headerContent}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => router.back()}
-          accessibilityLabel="Go back"
-        >
-          <ArrowLeft color={colors.text} size={24} />
-        </TouchableOpacity>
         <Text style={styles.title}>Children ({children.length})</Text>
       </View>
     </View>
@@ -194,10 +187,7 @@ export default function ChildrenScreen() {
       flexDirection: 'row',
       alignItems: 'center',
     },
-    backButton: {
-      marginRight: 12,
-      padding: 4,
-    },
+
     title: {
       ...TYPOGRAPHY.styles.title,
       color: colors.text,

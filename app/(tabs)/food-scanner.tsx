@@ -17,7 +17,7 @@ import {
   ImageStyle,
 } from 'react-native';
 import * as WebBrowser from 'expo-web-browser'; // Added WebBrowser
-import { Search, Camera as CameraIcon, AlertCircle, CheckCircle, ShoppingBag, History, ArrowLeft, Clock } from 'lucide-react-native'; // Renamed Camera to CameraIcon
+import { Search, Camera as CameraIcon, AlertCircle, CheckCircle, ShoppingBag, History, Clock } from 'lucide-react-native'; // Renamed Camera to CameraIcon
 import { CameraView, useCameraPermissions } from 'expo-camera'; // Import from expo-camera
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '@/context/ThemeContext';
@@ -870,7 +870,6 @@ export default function FoodScannerScreen() {
     <AppSafeArea style={styles.container}>
       <PageHeader
         title="Food Scanner"
-        onBack={() => router.back()}
         rightComponent={
           <TouchableOpacity 
             style={styles.historyButton}
