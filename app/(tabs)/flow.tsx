@@ -1,31 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  SafeAreaView, 
-  Platform, 
-  Dimensions,
+import {
+  View,
+  Text,
+  StyleSheet,
   TouchableOpacity,
+  ScrollView,
+  SafeAreaView,
+  useWindowDimensions,
+  Platform,
   StatusBar
 } from 'react-native';
+import { Stack } from 'expo-router';
+import { Play, Pause, Square, RotateCcw, Clock, Target, TrendingUp, Activity, Brain, Heart } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';
 import { useFamily } from '@/context/FamilyContext';
-import { Plus, Sparkles } from 'lucide-react-native';
 import { slice1Service } from '@/lib/skillJourneyService';
 import { Journey } from '@/types/skillJourney';
 import FlowBackground from '@/components/FlowBackground';
 import FlowQuickLog from '@/components/FlowQuickLog';
 import FlowSkillOrbs from '@/components/FlowSkillOrbs';
-
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+import { AppSafeArea, PageHeader, Card, TYPOGRAPHY, COLORS, SPACING } from '@/components/Layout';
 
 export default function FlowScreen() {
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const { colors } = useTheme();
   const { userData } = useAuth();
   const { children, selectedChildId, setSelectedChildId } = useFamily();
-  
+
   const [isQuickLogVisible, setIsQuickLogVisible] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState<string | null>(null);
   const [journeys, setJourneys] = useState<Journey[]>([]);
@@ -45,7 +47,7 @@ export default function FlowScreen() {
       try {
         setLoading(true);
         const result = await slice1Service.getJourneys(selectedChildId);
-        
+
         if (result.data) {
           setJourneys(result.data);
           // Calculate total adventures across all skills
@@ -93,8 +95,7 @@ export default function FlowScreen() {
       zIndex: 10,
     },
     headerTitle: {
-      fontSize: 24,
-      fontWeight: 'bold',
+      ...TYPOGRAPHY.styles.title,
       color: colors.text,
     },
     quickLogButton: {
@@ -128,19 +129,17 @@ export default function FlowScreen() {
       marginBottom: 8,
     },
     infoTitle: {
-      fontSize: 16,
-      fontWeight: '600',
+      ...TYPOGRAPHY.styles.body,
       color: colors.text,
-      marginLeft: 8,
+      marginLeft: SPACING.sm,
     },
     encouragingMessage: {
-      fontSize: 14,
+      ...TYPOGRAPHY.styles.button,
       color: colors.primary,
-      fontWeight: '500',
-      marginBottom: 8,
+      marginBottom: SPACING.sm,
     },
     infoText: {
-      fontSize: 12,
+      ...TYPOGRAPHY.styles.small,
       color: colors.textSecondary,
       lineHeight: 16,
     },
@@ -156,12 +155,11 @@ export default function FlowScreen() {
       alignItems: 'center',
     },
     statNumber: {
-      fontSize: 20,
-      fontWeight: 'bold',
+      ...TYPOGRAPHY.styles.sectionHeader,
       color: colors.primary,
     },
     statLabel: {
-      fontSize: 10,
+      ...TYPOGRAPHY.styles.small,
       color: colors.textSecondary,
       textAlign: 'center',
     },
@@ -202,37 +200,37 @@ export default function FlowScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar 
+      <StatusBar
         barStyle={colors.text === '#000000' ? 'dark-content' : 'light-content'}
         backgroundColor={colors.background}
         translucent={true}
       />
-      
+
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Flow</Text>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.quickLogButton}
           onPress={handleQuickLog}
           accessibilityLabel="Quick log adventure"
         >
-          <Plus size={24} color={colors.background} />
+          <Square size={24} color={colors.background} />
         </TouchableOpacity>
       </View>
 
       {/* Info Panel - enhanced with aggregate data */}
       <View style={styles.infoPanel}>
         <View style={styles.infoHeader}>
-          <Sparkles size={16} color={colors.primary} />
+          <Heart size={16} color={colors.primary} />
           <Text style={styles.infoTitle}>Your Adventure Story</Text>
         </View>
-        
+
         {!loading && (
           <>
             <Text style={styles.encouragingMessage}>
               {encouragingMessage}
             </Text>
-            
+
             <Text style={styles.infoText}>
               Each orb represents a skill you're growing. The ripples show your recent adventures and progress.
             </Text>
@@ -262,9 +260,9 @@ export default function FlowScreen() {
       {/* Main Canvas with Background */}
       <View style={styles.canvasContainer}>
         <FlowBackground />
-        
+
         {/* Skill Orbs Overlay */}
-        <FlowSkillOrbs 
+        <FlowSkillOrbs
           onSkillSelect={handleSkillSelect}
           selectedSkill={selectedSkill}
         />
@@ -272,7 +270,7 @@ export default function FlowScreen() {
 
       {/* Quick Log Modal */}
       {isQuickLogVisible && (
-        <FlowQuickLog 
+        <FlowQuickLog
           onClose={handleCloseQuickLog}
           selectedSkill={selectedSkill}
         />

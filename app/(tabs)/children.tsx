@@ -1,22 +1,29 @@
 // app/(tabs)/children.tsx
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   TouchableOpacity,
-  Image,
-  useWindowDimensions,
+  FlatList,
+  Alert,
+  Modal,
+  TextInput,
+  ScrollView,
   SafeAreaView,
+  useWindowDimensions,
   Platform,
   Dimensions,
   ActivityIndicator,
+  Image,
 } from 'react-native';
-import { router } from 'expo-router';
-import { Plus, Users, ChevronRight, PenLine, ArrowLeft } from 'lucide-react-native';
-import { useTheme } from '@/context/ThemeContext';
+import { useRouter, Stack } from 'expo-router';
+import { Plus, Edit, Trash2, User, Calendar, Activity, Heart, Brain, Star, ArrowLeft, Users, PenLine, ChevronRight } from 'lucide-react-native';
 import { useFamily } from '@/context/FamilyContext';
+import { useAuth } from '@/context/AuthContext';
+import { Child } from '@/context/FamilyContext';
+import { AppSafeArea, PageHeader, Card, TYPOGRAPHY, COLORS, SPACING } from '@/components/Layout';
+import { useTheme } from '@/context/ThemeContext';
 import { useFocusEffect } from '@react-navigation/native';
 
 export default function ChildrenScreen() {
@@ -34,6 +41,8 @@ export default function ChildrenScreen() {
     }, [fetchChildren])
   );
 
+  const router = useRouter();
+  
   const handleAddChild = () => {
     router.push('/children/add');
   };
@@ -83,7 +92,7 @@ export default function ChildrenScreen() {
       </Text>
       <TouchableOpacity style={styles.addButton} onPress={handleAddChild}>
         <Plus size={20} color={colors.background} style={{ marginRight: 8 }} />
-        <Text style={{ color: colors.background, fontWeight: '600' }}>Add Your First Child</Text>
+        <Text style={{ ...TYPOGRAPHY.styles.button, color: colors.background }}>Add Your First Child</Text>
       </TouchableOpacity>
     </View>
   );
@@ -100,7 +109,7 @@ export default function ChildrenScreen() {
   const renderErrorComponent = () => (
     <View style={styles.emptyContainer}>
       <View style={styles.emptyIconContainer}>
-        <Text style={{ fontSize: 24, color: colors.error }}>⚠️</Text>
+        <Text style={{ ...TYPOGRAPHY.styles.title, color: colors.error }}>⚠️</Text>
       </View>
       <Text style={styles.emptyTitle}>Error Loading Children</Text>
       <Text style={styles.emptyDescription}>
@@ -190,8 +199,7 @@ export default function ChildrenScreen() {
       padding: 4,
     },
     title: {
-      fontSize: 24,
-      fontWeight: 'bold',
+      ...TYPOGRAPHY.styles.title,
       color: colors.text,
     },
     listContent: {
@@ -236,18 +244,17 @@ export default function ChildrenScreen() {
       marginBottom: 4,
     },
     childName: {
-      fontSize: 20,
-      fontWeight: 'bold',
+      ...TYPOGRAPHY.styles.sectionHeader,
       color: colors.text,
     },
     childAge: {
-      fontSize: 16,
+      ...TYPOGRAPHY.styles.body,
       color: colors.textSecondary,
     },
     childDiagnosis: {
-      fontSize: 16,
+      ...TYPOGRAPHY.styles.body,
       color: colors.primary,
-      marginBottom: 12,
+      marginBottom: SPACING.md,
     },
     childDetails: {
       marginBottom: 12,
@@ -256,13 +263,12 @@ export default function ChildrenScreen() {
       marginBottom: 8,
     },
     detailLabel: {
-      fontSize: 14,
-      fontWeight: '600',
+      ...TYPOGRAPHY.styles.button,
       color: colors.text,
-      marginBottom: 2,
+      marginBottom: SPACING.xs,
     },
     detailText: {
-      fontSize: 14,
+      ...TYPOGRAPHY.styles.button,
       color: colors.textSecondary,
     },
     actionRow: {
@@ -276,18 +282,18 @@ export default function ChildrenScreen() {
       alignItems: 'center',
     },
     editButtonText: {
-      fontSize: 14,
+      ...TYPOGRAPHY.styles.button,
       color: colors.primary,
-      marginLeft: 4,
+      marginLeft: SPACING.xs,
     },
     viewButton: {
       flexDirection: 'row',
       alignItems: 'center',
     },
     viewButtonText: {
-      fontSize: 14,
+      ...TYPOGRAPHY.styles.button,
       color: colors.primary,
-      marginRight: 4,
+      marginRight: SPACING.xs,
     },
     floatingButton: {
       position: 'absolute',
@@ -330,16 +336,15 @@ export default function ChildrenScreen() {
       marginBottom: 16,
     },
     emptyTitle: {
-      fontSize: 20,
-      fontWeight: 'bold',
+      ...TYPOGRAPHY.styles.sectionHeader,
       color: colors.text,
-      marginBottom: 8,
+      marginBottom: SPACING.sm,
     },
     emptyDescription: {
-      fontSize: 16,
+      ...TYPOGRAPHY.styles.body,
       color: colors.textSecondary,
       textAlign: 'center',
-      marginBottom: 24,
+      marginBottom: SPACING.lg,
     },
     addButton: {
       backgroundColor: colors.primary,
@@ -395,7 +400,7 @@ export default function ChildrenScreen() {
           borderRadius: 8,
           zIndex: 999
         }}>
-          <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+          <Text style={{ ...TYPOGRAPHY.styles.small, color: colors.textSecondary }}>
             Debug: {children.length} children loaded
           </Text>
           <TouchableOpacity 
@@ -408,7 +413,7 @@ export default function ChildrenScreen() {
             }}
             onPress={handleDeleteAll}
           >
-            <Text style={{ color: colors.background, fontSize: 12, fontWeight: '600' }}>
+            <Text style={{ ...TYPOGRAPHY.styles.small, color: colors.background, fontWeight: '600' }}>
               🗑️ Delete All (Testing)
             </Text>
           </TouchableOpacity>

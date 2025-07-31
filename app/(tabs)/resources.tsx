@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,15 +6,17 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
-  useWindowDimensions,
   Linking,
-  Platform,
+  Alert,
   SafeAreaView,
-  Dimensions,
+  useWindowDimensions,
+  Platform,
 } from 'react-native';
-import { Resource, ResourceCategory } from '@/types';
+import { Stack } from 'expo-router';
+import { ExternalLink, BookOpen, Video, Users, Heart, Brain, Star, ChevronRight, Search, Filter } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
-import { BookOpen, Video, FileText, Users, Wrench, ExternalLink, Heart, Star, ArrowLeft } from 'lucide-react-native';
+import { AppSafeArea, PageHeader, Card, TYPOGRAPHY, COLORS, SPACING } from '@/components/Layout';
+import { Resource, ResourceCategory } from '@/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 
@@ -122,7 +124,7 @@ export default function ResourcesScreen() {
   const { width } = useWindowDimensions();
   const isTablet = width >= 768;
   const isWeb = Platform.OS === 'web';
-  const windowWidth = Dimensions.get('window').width;
+  const windowWidth = useWindowDimensions().width;
   const router = useRouter();
   const { category } = useLocalSearchParams<{ category: ResourceCategory }>();
 
@@ -162,16 +164,16 @@ export default function ResourcesScreen() {
     }
   };
 
-  const getIconForCategory = useCallback((category: ResourceCategory) => {
+  const getIconForCategory = (category: ResourceCategory) => {
     switch (category) {
       case 'articles':
-        return <FileText size={20} color={colors.text} />;
+        return <BookOpen size={20} color={colors.text} />;
       case 'videos':
         return <Video size={20} color={colors.text} />;
       case 'books':
         return <BookOpen size={20} color={colors.text} />;
       case 'tools':
-        return <Wrench size={20} color={colors.text} />;
+        return <Brain size={20} color={colors.text} />;
       case 'community':
         return <Users size={20} color={colors.text} />;
       case 'self-care':
@@ -181,9 +183,9 @@ export default function ResourcesScreen() {
       default:
         return null;
     }
-  }, [colors.text]);
+  };
 
-  const handleResourcePress = useCallback(async (url: string) => {
+  const handleResourcePress = async (url: string) => {
     try {
       const supported = await Linking.canOpenURL(url);
       if (supported) {
@@ -194,7 +196,7 @@ export default function ResourcesScreen() {
     } catch (error) {
       console.error("Error opening URL:", error);
     }
-  }, []);
+  };
 
   const filteredResources = RESOURCES.filter(resource => {
     if (selectedCategory === 'favorites') {
@@ -239,26 +241,25 @@ export default function ResourcesScreen() {
       marginRight: 12,
       padding: 4,
     },
-    title: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      color: colors.text,
-    },
+          title: {
+        ...TYPOGRAPHY.styles.title,
+        color: colors.text,
+      },
     categoryContainer: {
-      paddingVertical: 16,
+      paddingVertical: SPACING.md,
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
     },
     categoryContent: {
-      paddingHorizontal: 16,
+      paddingHorizontal: SPACING.md,
     },
     categoryButton: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingHorizontal: 16,
-      paddingVertical: 8,
+      paddingHorizontal: SPACING.md,
+      paddingVertical: SPACING.sm,
       borderRadius: 20,
-      marginRight: 8,
+      marginRight: SPACING.sm,
       backgroundColor: colors.background,
       borderWidth: 1,
       borderColor: colors.border,
@@ -267,16 +268,16 @@ export default function ResourcesScreen() {
       backgroundColor: colors.primary,
       borderColor: colors.primary,
     },
-    categoryText: {
-      fontSize: 14,
-      color: colors.text,
-      marginLeft: 8,
-    },
+          categoryText: {
+        ...TYPOGRAPHY.styles.button,
+        color: colors.text,
+        marginLeft: SPACING.sm,
+      },
     categoryTextActive: {
       color: colors.background,
     },
     featuredContainer: {
-      margin: 16,
+      margin: SPACING.md,
       borderRadius: 12,
       overflow: 'hidden',
       backgroundColor: colors.background,
@@ -288,30 +289,29 @@ export default function ResourcesScreen() {
       height: 200,
     },
     featuredContent: {
-      padding: 16,
+      padding: SPACING.md,
     },
-    featuredTitle: {
-      fontSize: 20,
-      fontWeight: 'bold',
-      color: colors.text,
-      marginBottom: 8,
-    },
-    featuredDescription: {
-      fontSize: 16,
-      color: colors.textSecondary,
-      marginBottom: 16,
-    },
+          featuredTitle: {
+        ...TYPOGRAPHY.styles.sectionHeader,
+        color: colors.text,
+        marginBottom: SPACING.sm,
+      },
+      featuredDescription: {
+        ...TYPOGRAPHY.styles.body,
+        color: colors.textSecondary,
+        marginBottom: SPACING.md,
+      },
     featuredFooter: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
     },
-    featuredType: {
-      fontSize: 14,
-      color: colors.primary,
-    },
+          featuredType: {
+        ...TYPOGRAPHY.styles.button,
+        color: colors.primary,
+      },
     gridContainer: {
-      padding: 16,
+      padding: SPACING.md,
     },
     gridContainerTablet: {
       flexDirection: 'row',
@@ -322,7 +322,7 @@ export default function ResourcesScreen() {
       backgroundColor: colors.background,
       borderRadius: 12,
       overflow: 'hidden',
-      marginBottom: 16,
+      marginBottom: SPACING.md,
       borderWidth: 1,
       borderColor: colors.border,
     },
@@ -334,31 +334,30 @@ export default function ResourcesScreen() {
       height: 150,
     },
     resourceContent: {
-      padding: 16,
+      padding: SPACING.md,
     },
-    resourceTitle: {
-      fontSize: 20,
-      fontWeight: 'bold',
-      color: colors.text,
-      marginBottom: 8,
-    },
-    resourceDescription: {
-      fontSize: 16,
-      color: colors.textSecondary,
-      marginBottom: 16,
-      fontWeight: '400'
-    },
+          resourceTitle: {
+        ...TYPOGRAPHY.styles.sectionHeader,
+        color: colors.text,
+        marginBottom: SPACING.sm,
+      },
+      resourceDescription: {
+        ...TYPOGRAPHY.styles.body,
+        color: colors.textSecondary,
+        marginBottom: SPACING.md,
+        fontWeight: '400'
+      },
     resourceFooter: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
     },
-    resourceType: {
-      fontSize: 14,
-      color: colors.primary,
-    },
+          resourceType: {
+        ...TYPOGRAPHY.styles.button,
+        color: colors.primary,
+      },
     favoriteButton: {
-      padding: 4,
+      padding: SPACING.sm,
     },
   });
 
@@ -383,7 +382,7 @@ export default function ResourcesScreen() {
                 onPress={() => router.back()}
                 accessibilityLabel="Go back"
               >
-                <ArrowLeft color={colors.text} size={24} />
+                <ChevronRight color={colors.text} size={24} />
               </TouchableOpacity>
               <Text style={styles.title}>Resources</Text>
             </View>
